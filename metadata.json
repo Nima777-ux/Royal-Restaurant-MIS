@@ -1,0 +1,6 @@
+{
+  "name": "The Royal Crown Restaurant | 3D Haute Gastronomie",
+  "description": "An imperial 3D culinary experience at The Royal Crown Restaurant, merging Michelin-star haute cuisine, interactive dish showcases, bilingual Dari & English menus, and daily live market currency conversion.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

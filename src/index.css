@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-serif: 'Cinzel', serif;
+    --font-editorial: 'Cormorant Garamond', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-persian: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    transition: background-color 0.4s ease, color 0.4s ease;
+  }
+
+  body.font-persian, [dir="rtl"] {
+    font-family: var(--font-persian);
+  }
+
+  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] .font-serif {
+    letter-spacing: normal !important;
+  }
+
+  /* Prevent text cursor (I-beam) when hovering normal text, headings, and cards */
+  *, html, body, p, h1, h2, h3, h4, h5, h6, span, blockquote, div, section, article {
+    cursor: default;
+  }
+
+  button, a, select, input[type="submit"], input[type="button"], [role="button"], label[for] {
+    cursor: pointer !important;
+  }
+
+  input[type="text"], input[type="email"], input[type="tel"], input[type="date"], textarea {
+    cursor: text !important;
+  }
+
+  h1, h2, h3, .font-serif-luxury {
+    font-family: var(--font-serif);
+    letter-spacing: 0.05em;
+  }
+
+  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] .font-serif-luxury {
+    font-family: var(--font-persian);
+    font-weight: 800;
+  }
+
+  .font-editorial {
+    font-family: var(--font-editorial);
+  }
+
+  [dir="rtl"] .font-editorial {
+    font-family: var(--font-persian);
+    font-style: normal;
+  }
+}
+
+/* Custom 3D & cinematic utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.perspective-2000 {
+  perspective: 2000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Luxury Glassmorphism - Dark Mode */
+.glass-luxury {
+  background: rgba(18, 15, 13, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 175, 55, 0.16);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.light .glass-luxury {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.glass-luxury-gold {
+  background: radial-gradient(120% 120% at 50% 0%, rgba(212, 175, 55, 0.14) 0%, rgba(18, 15, 13, 0.9) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 223, 128, 0.18);
+}
+
+.light .glass-luxury-gold {
+  background: radial-gradient(120% 120% at 50% 0%, rgba(212, 175, 55, 0.16) 0%, rgba(255, 255, 255, 0.95) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 223, 128, 0.4);
+}
+
+/* Glowing text and accents */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #FFF6D6 0%, #E8C15A 50%, #B8860B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.light .text-gold-gradient {
+  background: linear-gradient(135deg, #8A6400 0%, #C4971A 50%, #8A6400 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-glow {
+  filter: drop-shadow(0 0 24px rgba(212, 175, 55, 0.35));
+}
+
+.gold-glow-sm {
+  filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.25));
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #080706;
+}
+.light ::-webkit-scrollbar-track {
+  background: #F4EFE6;
+}
+::-webkit-scrollbar-thumb {
+  background: #2A241C;
+  border-radius: 3px;
+}
+.light ::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
+}
+
+/* Film Grain */
+.film-grain {
+  background-image: radial-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+.light .film-grain {
+  background-image: radial-gradient(rgba(184, 134, 11, 0.04) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Utility to hide scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
