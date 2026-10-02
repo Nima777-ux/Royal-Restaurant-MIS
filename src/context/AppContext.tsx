@@ -3,6 +3,7 @@ import { Language, Theme, ReservationData, Dish, UserProfile } from '../types';
 import { TRANSLATIONS } from '../data/translations';
 import { luxuryAudio, SoundPreset } from '../utils/ambientAudio';
 import { FULL_MENU } from '../data/restaurantData';
+import { supabase, getRedirectUrl } from '../lib/supabase';
 
 interface AppContextType {
   language: Language;
@@ -20,6 +21,8 @@ interface AppContextType {
   formatNumber: (num: number) => string;
   isProfileOpen: boolean;
   setIsProfileOpen: (open: boolean) => void;
+  isContactModalOpen: boolean;
+  setIsContactModalOpen: (open: boolean) => void;
   profileTab: 'profile' | 'favorites' | 'reservations' | 'settings';
   setProfileTab: (tab: 'profile' | 'favorites' | 'reservations' | 'settings') => void;
   openProfileWithTab: (tab: 'profile' | 'favorites' | 'reservations' | 'settings') => void;
@@ -41,12 +44,16 @@ interface AppContextType {
   setIsAuthModalOpen: (open: boolean) => void;
   isEmailVerified: boolean;
   pendingVerificationEmail: string | null;
+  isResettingPassword: boolean;
+  setIsResettingPassword: (resetting: boolean) => void;
   confirmEmailVerification: () => void;
-  resendVerificationEmail: () => void;
+  resendVerificationEmail: (emailOverride?: string) => Promise<{ success: boolean; message: string }>;
   cancelPendingVerification: () => void;
-  login: (email: string, name?: string) => void;
-  signup: (name: string, email: string, password?: string) => void;
-  logout: () => void;
+  login: (email: string, password?: string, name?: string) => Promise<{ success: boolean; message: string }>;
+  signup: (name: string, email: string, password?: string) => Promise<{ success: boolean; message: string; requiresVerification: boolean }>;
+  sendForgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
+  resetPassword: (newPassword: string) => Promise<{ success: boolean; message: string }>;
+  logout: () => Promise<void>;
   t: typeof TRANSLATIONS.en;
   isRtl: boolean;
 }
@@ -117,6 +124,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return verified !== 'false';
   });
 
+  const [isResettingPassword, setIsResettingPassword] = useState<boolean>(false);
+
   // 3. Exchange Rate state: User example "1 dollar = 65 AFN ... 34$ * 65AFN = 2210AFN"
   const [exchangeRate, setExchangeRate] = useState<number>(() => {
     const saved = localStorage.getItem('nima_rate');
@@ -128,8 +137,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
   const [isRateLoading, setIsRateLoading] = useState(false);
 
-  // 4. Profile Modal state
+  // 4. Profile & Owner Contact Modal state
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [profileTab, setProfileTab] = useState<'profile' | 'favorites' | 'reservations' | 'settings'>('profile');
 
   // 5. Saved Dishes / Favorites
@@ -157,6 +167,73 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   });
 
+  // Sync Supabase user session to application state
+  const syncSupabaseUser = useCallback((user: any) => {
+    const email = user.email || '';
+    const fullName =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      email.split('@')[0] ||
+      'Royal VIP Patron';
+
+    const updated: UserProfile = {
+      name: fullName,
+      email: email,
+      phone: user.user_metadata?.phone || '+33 6 12 34 56 78',
+      memberId: user.user_metadata?.member_id || `RC-${(user.id || '8829').slice(0, 4)}-VIP`,
+      tier: 'Imperial Crown Patron',
+      tierFa: 'پاترون تاج سلطنتی (Imperial Crown Patron)',
+      points: 2500,
+      isAuthenticated: true,
+      emailVerified: true,
+    };
+
+    setCurrentUserState(updated);
+    setIsEmailVerified(true);
+    setPendingVerificationEmail(null);
+    localStorage.setItem('rc_royal_user', JSON.stringify(updated));
+    localStorage.setItem('rc_email_verified', 'true');
+    localStorage.removeItem('rc_pending_email');
+    setIsAuthModalOpen(false);
+  }, []);
+
+  // Listen to Supabase auth events & URL tokens (e.g. clicking verification link in Gmail)
+  useEffect(() => {
+    // Check existing session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!error && session?.user) {
+        syncSupabaseUser(session.user);
+      }
+    });
+
+    // Listen to real-time auth changes (dispatched when user clicks email confirmation in Gmail)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        syncSupabaseUser(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        const guest: UserProfile = {
+          ...defaultRoyalUser,
+          isAuthenticated: false,
+          emailVerified: false,
+        };
+        setCurrentUserState(guest);
+        setIsEmailVerified(true);
+        setPendingVerificationEmail(null);
+      }
+
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsResettingPassword(true);
+        setIsAuthModalOpen(true);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [syncSupabaseUser]);
+
   // Sync RTL and lang attribute
   useEffect(() => {
     localStorage.setItem('nima_lang', language);
@@ -178,117 +255,113 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       document.body.classList.add('bg-[#080706]', 'text-[#FAF6EE]');
       document.body.classList.remove('bg-[#FAF7F2]', 'text-[#1F1A16]');
     } else {
-      document.documentElement.classList.add('light');
       document.documentElement.classList.remove('dark');
-      document.body.classList.add('bg-[#FAF7F2]', 'text-[#1F1A16]');
+      document.documentElement.classList.add('light');
       document.body.classList.remove('bg-[#080706]', 'text-[#FAF6EE]');
+      document.body.classList.add('bg-[#FAF7F2]', 'text-[#1F1A16]');
     }
   }, [theme]);
-
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-  };
 
   const toggleLanguage = () => {
     setLanguageState((prev) => (prev === 'en' ? 'fa' : 'en'));
   };
 
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
   };
 
   const toggleTheme = () => {
     setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Live Exchange Rate fetcher from market APIs
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
+  };
+
+  // Live Exchange rate fetcher
   const refreshExchangeRate = useCallback(async () => {
     setIsRateLoading(true);
     try {
-      // Free public open exchange rate API with CORS enabled
-      const response = await fetch('https://open.er-api.com/v6/latest/USD');
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.rates && data.rates.AFN) {
-          const rate = Math.round(data.rates.AFN * 100) / 100;
-          setExchangeRate(rate);
-          const timeStr = `Market Live: ${new Date().toLocaleDateString()} (1 USD = ${rate} AFN)`;
-          setLastRateUpdate(timeStr);
-          localStorage.setItem('nima_rate', rate.toString());
-          localStorage.setItem('nima_rate_time', timeStr);
-          setIsRateLoading(false);
-          return;
-        }
+      const res = await fetch('https://open.er-api.com/v6/latest/USD');
+      if (!res.ok) throw new Error('Network error fetching rates');
+      const data = await res.json();
+      if (data && data.rates && data.rates.AFN) {
+        const liveRate = parseFloat(data.rates.AFN);
+        setExchangeRate(liveRate);
+        const timeStr = new Date().toLocaleTimeString(language === 'fa' ? 'fa-IR' : 'en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        const formatted = `${timeStr} (Live Forex)`;
+        setLastRateUpdate(formatted);
+        localStorage.setItem('nima_rate', liveRate.toString());
+        localStorage.setItem('nima_rate_time', formatted);
       }
-      // If API doesn't provide AFN or errors, fallback to official daily market 65.0 AFN
-      const fallbackTime = `Daily Market: ${new Date().toLocaleDateString()} (1 USD = 65.00 AFN)`;
-      setExchangeRate(65.0);
-      setLastRateUpdate(fallbackTime);
-      localStorage.setItem('nima_rate', '65');
-      localStorage.setItem('nima_rate_time', fallbackTime);
     } catch {
-      const fallbackTime = `Daily Market Standard: 1 USD = 65.00 AFN`;
-      setExchangeRate(65.0);
-      setLastRateUpdate(fallbackTime);
+      const fallbackRate = 65.0;
+      setExchangeRate(fallbackRate);
+      setLastRateUpdate('Standard Market Rate');
     } finally {
       setIsRateLoading(false);
     }
-  }, []);
-
-  // Fetch exchange rate on mount if older than 24h
-  useEffect(() => {
-    refreshExchangeRate();
-  }, [refreshExchangeRate]);
+  }, [language]);
 
   const setManualExchangeRate = (rate: number) => {
     if (rate > 0) {
       setExchangeRate(rate);
-      const timeStr = `Custom Market Rate: 1 USD = ${rate} AFN`;
-      setLastRateUpdate(timeStr);
+      const timeStr = new Date().toLocaleTimeString(language === 'fa' ? 'fa-IR' : 'en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      const note = `${timeStr} (Imperial Custom)`;
+      setLastRateUpdate(note);
       localStorage.setItem('nima_rate', rate.toString());
-      localStorage.setItem('nima_rate_time', timeStr);
+      localStorage.setItem('nima_rate_time', note);
     }
   };
 
-  // Price conversion engine
-  const formatPrice = useCallback(
-    (priceInput: string | number): string => {
-      // Parse numeric USD price
-      let numericUsd = 0;
-      if (typeof priceInput === 'number') {
-        numericUsd = priceInput;
-      } else {
-        const clean = priceInput.replace(/[^0-9.]/g, '');
-        numericUsd = parseFloat(clean) || 0;
-      }
-
-      if (language === 'en') {
-        return `$${numericUsd}`;
-      } else {
-        // Convert to AFN: numericUsd * exchangeRate
-        // e.g. 34 * 65 = 2210 AFN
-        const afnTotal = Math.round(numericUsd * exchangeRate);
-        const formattedComma = afnTotal.toLocaleString();
-        return `${formattedComma} AFN`;
-      }
-    },
-    [language, exchangeRate]
-  );
-
   const formatNumber = useCallback(
     (num: number): string => {
+      const formatted = num.toLocaleString('en-US');
       if (language === 'fa') {
-        return toPersianDigits(num.toLocaleString());
+        return toPersianDigits(formatted);
       }
-      return num.toLocaleString();
+      return formatted;
     },
     [language]
   );
 
-  // Favorites toggle
+  const formatPrice = useCallback(
+    (priceInput: string | number): string => {
+      let usdVal = 0;
+      if (typeof priceInput === 'number') {
+        usdVal = priceInput;
+      } else {
+        const cleaned = priceInput.replace(/[^0-9.]/g, '');
+        usdVal = parseFloat(cleaned) || 0;
+      }
+
+      const afnVal = Math.round(usdVal * exchangeRate);
+
+      if (language === 'fa') {
+        const afnFormatted = toPersianDigits(afnVal.toLocaleString('en-US'));
+        const usdFormatted = toPersianDigits(usdVal.toString());
+        return `${afnFormatted} افغانی (${usdFormatted} $)`;
+      }
+      return `$${usdVal} (${afnVal.toLocaleString('en-US')} AFN)`;
+    },
+    [exchangeRate, language]
+  );
+
+  const openProfileWithTab = (tab: 'profile' | 'favorites' | 'reservations' | 'settings') => {
+    setProfileTab(tab);
+    setIsProfileOpen(true);
+  };
+
   const toggleSaveDish = (dishId: string) => {
     setSavedDishIds((prev) => {
-      const next = prev.includes(dishId) ? prev.filter((id) => id !== dishId) : [...prev, dishId];
+      const exists = prev.includes(dishId);
+      const next = exists ? prev.filter((id) => id !== dishId) : [...prev, dishId];
       localStorage.setItem('nima_favorites', JSON.stringify(next));
       return next;
     });
@@ -296,12 +369,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const isDishSaved = (dishId: string) => savedDishIds.includes(dishId);
 
-  const savedDishes = FULL_MENU.filter((dish) => savedDishIds.includes(dish.id));
+  const savedDishes = FULL_MENU.filter((d) => savedDishIds.includes(d.id));
 
-  // Audio actions
   const toggleAudio = () => {
-    const isPlaying = luxuryAudio.toggle();
-    setAudioPlaying(isPlaying);
+    const nextState = !audioPlaying;
+    setAudioPlaying(nextState);
+    if (nextState) {
+      luxuryAudio.play();
+    } else {
+      luxuryAudio.stop();
+    }
   };
 
   const setSoundVolume = (vol: number) => {
@@ -312,11 +389,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setSoundPreset = (preset: SoundPreset) => {
     setSoundPresetState(preset);
     luxuryAudio.setPreset(preset);
-  };
-
-  const openProfileWithTab = (tab: 'profile' | 'favorites' | 'reservations' | 'settings') => {
-    setProfileTab(tab);
-    setIsProfileOpen(true);
   };
 
   const setActiveReservation = (res: ReservationData | null) => {
@@ -333,46 +405,249 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('rc_royal_user', JSON.stringify(user));
   };
 
-  const login = (email: string, name?: string) => {
-    const updated: UserProfile = {
-      ...currentUser,
-      email: email || currentUser.email,
-      name: name || currentUser.name,
-      isAuthenticated: true,
-      emailVerified: true,
-    };
-    setCurrentUser(updated);
-    setIsEmailVerified(true);
-    setPendingVerificationEmail(null);
-    localStorage.setItem('rc_email_verified', 'true');
-    localStorage.removeItem('rc_pending_email');
-    setIsAuthModalOpen(false);
+  // Sign In using Supabase
+  const login = async (
+    email: string,
+    password?: string,
+    name?: string
+  ): Promise<{ success: boolean; message: string }> => {
+    const cleanEmail = email.trim();
+
+    // Fast demo login if no password is provided
+    if (!password) {
+      const updated: UserProfile = {
+        ...currentUser,
+        email: cleanEmail || currentUser.email,
+        name: name || currentUser.name || 'Lord Nima Al-Kantara',
+        isAuthenticated: true,
+        emailVerified: true,
+      };
+      setCurrentUserState(updated);
+      setIsEmailVerified(true);
+      setPendingVerificationEmail(null);
+      localStorage.setItem('rc_royal_user', JSON.stringify(updated));
+      localStorage.setItem('rc_email_verified', 'true');
+      localStorage.removeItem('rc_pending_email');
+      setIsAuthModalOpen(false);
+      return { success: true, message: 'VIP demo patron access granted.' };
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: password,
+      });
+
+      if (error) {
+        if (error.message.toLowerCase().includes('email not confirmed')) {
+          setPendingVerificationEmail(cleanEmail);
+          setIsEmailVerified(false);
+          localStorage.setItem('rc_pending_email', cleanEmail);
+          localStorage.setItem('rc_email_verified', 'false');
+          return {
+            success: false,
+            message:
+              'Email not yet verified. Please check your Gmail or click "Resend Verification Email".',
+          };
+        }
+        return { success: false, message: error.message };
+      }
+
+      if (data?.user) {
+        syncSupabaseUser(data.user);
+        return { success: true, message: 'Imperial access granted.' };
+      }
+
+      return { success: false, message: 'Sign in failed.' };
+    } catch (err: any) {
+      return { success: false, message: err?.message || 'Sign in error.' };
+    }
   };
 
-  // Sign up now only expects name, email, password as requested by user!
-  const signup = (name: string, email: string, _password?: string) => {
+  // Sign Up using Supabase (Strictly Name, Email, Password)
+  const signup = async (
+    name: string,
+    email: string,
+    password?: string
+  ): Promise<{ success: boolean; message: string; requiresVerification: boolean }> => {
     const cleanEmail = email.trim();
     const cleanName = name.trim() || 'Royal Patron';
-    const updated: UserProfile = {
-      name: cleanName,
-      email: cleanEmail,
-      phone: '+33 6 12 34 56 78',
-      memberId: `RC-${Math.floor(1000 + Math.random() * 9000)}-VIP`,
-      tier: 'Imperial Crown Patron',
-      tierFa: 'پاترون تاج سلطنتی (Imperial Crown Patron)',
-      points: 1500,
-      isAuthenticated: false, // Remains false until email is confirmed from Gmail!
-      emailVerified: false,
-    };
-    setCurrentUserState(updated);
-    setPendingVerificationEmail(cleanEmail);
-    setIsEmailVerified(false);
-    localStorage.setItem('rc_royal_user', JSON.stringify(updated));
-    localStorage.setItem('rc_pending_email', cleanEmail);
-    localStorage.setItem('rc_email_verified', 'false');
-    setIsAuthModalOpen(false);
+    const cleanPassword = password || 'RoyalPass123!';
+
+    try {
+      const redirectUrl = getRedirectUrl();
+      const { data, error } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password: cleanPassword,
+        options: {
+          data: {
+            full_name: cleanName,
+          },
+          emailRedirectTo: redirectUrl,
+        },
+      });
+
+      if (error) {
+        return {
+          success: false,
+          message: error.message,
+          requiresVerification: false,
+        };
+      }
+
+      // Supabase returns user with identities: [] if email is already taken
+      if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        return {
+          success: false,
+          message:
+            'This email is already registered. Please sign in or use "Forgot Password" to receive a password reset link in your Gmail.',
+          requiresVerification: false,
+        };
+      }
+
+      // If email confirmation is disabled on the project and session was provided immediately
+      if (data?.session) {
+        syncSupabaseUser(data.session.user);
+        return {
+          success: true,
+          message: 'Account created and verified!',
+          requiresVerification: false,
+        };
+      }
+
+      // Email confirmation is required: Supabase dispatched the email!
+      const pendingUser: UserProfile = {
+        name: cleanName,
+        email: cleanEmail,
+        phone: '+33 6 12 34 56 78',
+        memberId: `RC-${Math.floor(1000 + Math.random() * 9000)}-VIP`,
+        tier: 'Imperial Crown Patron',
+        tierFa: 'پاترون تاج سلطنتی (Imperial Crown Patron)',
+        points: 1500,
+        isAuthenticated: false,
+        emailVerified: false,
+      };
+      setCurrentUserState(pendingUser);
+      setPendingVerificationEmail(cleanEmail);
+      setIsEmailVerified(false);
+      localStorage.setItem('rc_royal_user', JSON.stringify(pendingUser));
+      localStorage.setItem('rc_pending_email', cleanEmail);
+      localStorage.setItem('rc_email_verified', 'false');
+
+      return {
+        success: true,
+        message: `A verification link has been dispatched to ${cleanEmail}. Please open your Gmail to verify!`,
+        requiresVerification: true,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err?.message || 'Failed to dispatch verification email.',
+        requiresVerification: false,
+      };
+    }
   };
 
+  // Resend verification email to Gmail via Supabase
+  const resendVerificationEmail = async (
+    emailOverride?: string
+  ): Promise<{ success: boolean; message: string }> => {
+    const targetEmail = (
+      emailOverride ||
+      pendingVerificationEmail ||
+      currentUser.email ||
+      ''
+    ).trim();
+
+    if (!targetEmail) {
+      return { success: false, message: 'No email address found to resend to.' };
+    }
+
+    try {
+      const redirectUrl = getRedirectUrl();
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: targetEmail,
+        options: {
+          emailRedirectTo: redirectUrl,
+        },
+      });
+
+      if (error) {
+        return { success: false, message: error.message };
+      }
+
+      localStorage.setItem('rc_email_last_sent', Date.now().toString());
+      return {
+        success: true,
+        message: `Fresh verification email dispatched to ${targetEmail}. Check your Gmail inbox!`,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err?.message || 'Failed to resend verification email.',
+      };
+    }
+  };
+
+  // Send Password Reset link to Gmail via Supabase
+  const sendForgotPassword = async (
+    email: string
+  ): Promise<{ success: boolean; message: string }> => {
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      return { success: false, message: 'Please provide your email address.' };
+    }
+
+    try {
+      const redirectUrl = getRedirectUrl();
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: redirectUrl,
+      });
+
+      if (error) {
+        return { success: false, message: error.message };
+      }
+
+      return {
+        success: true,
+        message: `Password reset link sent to ${cleanEmail}. Check your Gmail inbox!`,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err?.message || 'Failed to dispatch password recovery email.',
+      };
+    }
+  };
+
+  // Update password after user clicks reset link in Gmail
+  const resetPassword = async (
+    newPassword: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        return { success: false, message: error.message };
+      }
+
+      setIsResettingPassword(false);
+      return {
+        success: true,
+        message: 'Password updated successfully! Welcome back to The Royal Crown.',
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err?.message || 'Failed to update password.',
+      };
+    }
+  };
+
+  // Fallback confirm simulator (allows manual verification if needed)
   const confirmEmailVerification = () => {
     const verifiedUser: UserProfile = {
       ...currentUser,
@@ -385,11 +660,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('rc_royal_user', JSON.stringify(verifiedUser));
     localStorage.setItem('rc_email_verified', 'true');
     localStorage.removeItem('rc_pending_email');
-  };
-
-  const resendVerificationEmail = () => {
-    // Simulated dispatch event
-    localStorage.setItem('rc_email_last_sent', Date.now().toString());
+    setIsAuthModalOpen(false);
   };
 
   const cancelPendingVerification = () => {
@@ -400,7 +671,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIsAuthModalOpen(true);
   };
 
-  const logout = () => {
+  // Sign out
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch {}
     const guest: UserProfile = {
       ...defaultRoyalUser,
       isAuthenticated: false,
@@ -412,7 +687,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('rc_email_verified');
     setPendingVerificationEmail(null);
     setIsEmailVerified(true);
-    // User requested: "The sign in sign up window should be shown again when we log our account out."
     setIsAuthModalOpen(true);
   };
 
@@ -437,6 +711,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         formatNumber,
         isProfileOpen,
         setIsProfileOpen,
+        isContactModalOpen,
+        setIsContactModalOpen,
         profileTab,
         setProfileTab,
         openProfileWithTab,
@@ -458,11 +734,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setIsAuthModalOpen,
         isEmailVerified,
         pendingVerificationEmail,
+        isResettingPassword,
+        setIsResettingPassword,
         confirmEmailVerification,
         resendVerificationEmail,
         cancelPendingVerification,
         login,
         signup,
+        sendForgotPassword,
+        resetPassword,
         logout,
         t,
         isRtl,

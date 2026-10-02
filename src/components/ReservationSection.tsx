@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Calendar, Clock, Users, CheckCircle2, User } from 'lucide-react';
+import { Sparkles, Calendar, Clock, Users, CheckCircle2, User, Crown, ShieldCheck, Edit3 } from 'lucide-react';
 import { ReservationData, CursorMode } from '../types';
 import { useApp } from '../context/AppContext';
 
@@ -21,6 +21,7 @@ interface SaloonOption {
 export function ReservationSection({ setCursorMode, preselectedDish }: ReservationSectionProps) {
   const { t, formatPrice, language, theme, setActiveReservation, openProfileWithTab, currentUser } = useApp();
   const isDari = language === 'fa';
+  const [isEditingContact, setIsEditingContact] = useState(false);
 
   const saloonOptions: SaloonOption[] = [
     {
@@ -63,25 +64,25 @@ export function ReservationSection({ setCursorMode, preselectedDish }: Reservati
     return isDari ? found.labelFa : found.labelEn;
   };
 
-  const [formData, setFormData] = useState<ReservationData>({
+  const [formData, setFormData] = useState<ReservationData>(() => ({
     date: '2026-10-15',
     time: '20:00',
     guests: 2,
     seatingArea: "Chef's Counter",
-    name: currentUser.name || 'Lord Nima Al-Kantara',
-    email: currentUser.email || 'nima@epicurean.vip',
-    phone: currentUser.phone || '+33 6 12 34 56 78',
+    name: currentUser?.name || 'Lord Nima Al-Kantara',
+    email: currentUser?.email || 'nimaalkantra7@gmail.com',
+    phone: currentUser?.phone || '+33 6 12 34 56 78',
     dietaryNotes: preselectedDish ? `Specially requesting: ${preselectedDish}` : '',
-  });
+  }));
 
   const [confirmedBooking, setConfirmedBooking] = useState<ReservationData | null>(null);
 
   // Sync user updates if logged in
   useEffect(() => {
-    if (currentUser.isAuthenticated && currentUser.name) {
+    if (currentUser.isAuthenticated) {
       setFormData((prev) => ({
         ...prev,
-        name: currentUser.name,
+        name: currentUser.name || prev.name,
         email: currentUser.email || prev.email,
         phone: currentUser.phone || prev.phone,
       }));
@@ -118,75 +119,43 @@ export function ReservationSection({ setCursorMode, preselectedDish }: Reservati
   return (
     <section
       id="reservation"
-      className={`relative min-h-screen w-full py-16 sm:py-24 md:py-32 px-4 sm:px-8 md:px-12 lg:px-20 overflow-hidden border-t ${
+      className={`relative min-h-screen w-full py-16 sm:py-24 md:py-28 px-4 sm:px-8 md:px-12 lg:px-20 overflow-hidden border-t ${
         theme === 'dark' ? 'border-[#D4AF37]/15' : 'border-[#D4AF37]/25'
       }`}
     >
-      {/* Warm ambient glow */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-[850px] h-[550px] rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.08)_0%,transparent_70%)]" />
-        <div className="absolute top-1/4 right-1/4 w-[450px] h-[450px] rounded-full bg-[radial-gradient(circle,rgba(59,38,19,0.25)_0%,transparent_70%)]" />
-      </div>
-
-      <div className="relative z-10 max-w-5xl w-full mx-auto">
-        {/* SECTION HEADER */}
-        <div className="flex flex-col items-center text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-serif tracking-[0.25em] uppercase mb-4 ${
-              theme === 'dark'
-                ? 'border-[#D4AF37]/30 bg-[#161310]/80 text-[#D4AF37]'
-                : 'border-[#D4AF37]/40 bg-white/90 text-[#B8860B] shadow-sm'
-            }`}
-          >
+      <div className="max-w-5xl mx-auto space-y-10 sm:space-y-12 relative z-10">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#D4AF37]/40 bg-[#D4AF37]/10 text-[#D4AF37] text-xs font-mono tracking-widest uppercase">
             <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
             {t.reservation.badge}
-          </motion.div>
-
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.9, delay: 0.1 }}
-            className="font-serif text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight uppercase"
-          >
-            {t.reservation.title}{' '}
-            <span className="text-gold-gradient italic font-serif">
-              {t.reservation.titleHighlight}
-            </span>
-          </motion.h2>
-
-          <p
-            className={`mt-4 text-sm sm:text-base font-editorial italic max-w-xl ${
-              theme === 'dark' ? 'text-[#B3A89B]' : 'text-[#615444]'
-            }`}
-          >
+          </div>
+          <h2 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
+            {t.reservation.title}
+          </h2>
+          <p className="text-sm sm:text-base font-sans text-[#A69B89] max-w-xl mx-auto leading-relaxed">
             {t.reservation.subtitle}
           </p>
-
-          <div className="w-20 h-[1.5px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent my-6" />
         </div>
 
-        {/* RESERVATION EXPERIENCE FORM / CONFIRMATION VIP PASS */}
+        {/* BOOKING FORM OR CONFIRMATION */}
         <AnimatePresence mode="wait">
           {!confirmedBooking ? (
             <motion.form
               key="booking-form"
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              exit={{ opacity: 0, y: -15 }}
               onSubmit={handleSubmit}
-              className={`p-6 sm:p-12 rounded-3xl border shadow-2xl space-y-8 ${
+              className={`p-6 sm:p-10 rounded-3xl border shadow-xl space-y-8 backdrop-blur-md ${
                 theme === 'dark'
-                  ? 'bg-[#120F0D]/95 border-[#D4AF37]/40 shadow-[0_25px_80px_rgba(0,0,0,0.9)]'
-                  : 'bg-white border-[#D4AF37]/45 shadow-[0_25px_80px_rgba(0,0,0,0.08)]'
+                  ? 'bg-[#120F0D]/90 border-[#D4AF37]/35 shadow-[0_20px_60px_rgba(0,0,0,0.8)]'
+                  : 'bg-white/95 border-[#D4AF37]/45 shadow-[0_20px_60px_rgba(0,0,0,0.06)]'
               }`}
             >
-              {/* STEP 1: PARTY, SEATING & DATE */}
+              {/* STEP 1: PARTY SIZE, DATE & SALOON SELECTION */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Guests count */}
+                {/* Guests */}
                 <div className="space-y-2">
                   <label className="text-xs font-serif tracking-widest text-[#D4AF37] uppercase flex items-center gap-2 font-semibold">
                     <Users className="w-3.5 h-3.5 text-[#D4AF37]" />
@@ -194,16 +163,16 @@ export function ReservationSection({ setCursorMode, preselectedDish }: Reservati
                   </label>
                   <select
                     value={formData.guests}
-                    onChange={(e) => setFormData({ ...formData, guests: parseInt(e.target.value) })}
+                    onChange={(e) => setFormData({ ...formData, guests: Number(e.target.value) })}
                     className={`w-full px-4 py-3.5 rounded-2xl border font-sans text-sm focus:outline-none focus:border-[#D4AF37] ${
                       theme === 'dark'
                         ? 'bg-[#1A1612] border-[#D4AF37]/25 text-[#FAF6EE]'
                         : 'bg-[#FAF8F5] border-[#D4AF37]/35 text-[#1F1A16]'
                     }`}
                   >
-                    {[1, 2, 3, 4, 6, 8].map((num) => (
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
                       <option key={num} value={num}>
-                        {num} {isDari ? 'مهمان (ظرفیت کامل میز)' : `Guest${num > 1 ? 's' : ''} (Full Table)`}
+                        {num} {isDari ? 'مهمان سلطنتی' : num === 1 ? 'Royal Guest' : 'Royal Guests'}
                       </option>
                     ))}
                   </select>
@@ -217,6 +186,7 @@ export function ReservationSection({ setCursorMode, preselectedDish }: Reservati
                   </label>
                   <input
                     type="date"
+                    required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     className={`w-full px-4 py-3.5 rounded-2xl border font-sans text-sm focus:outline-none focus:border-[#D4AF37] ${
@@ -227,7 +197,7 @@ export function ReservationSection({ setCursorMode, preselectedDish }: Reservati
                   />
                 </div>
 
-                {/* Seating Area / Saloon Selection (BILINGUAL TRANSLATION IN DARI) */}
+                {/* Seating Saloon */}
                 <div className="space-y-2">
                   <label className="text-xs font-serif tracking-widest text-[#D4AF37] uppercase flex items-center gap-2 font-semibold">
                     <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
@@ -236,10 +206,7 @@ export function ReservationSection({ setCursorMode, preselectedDish }: Reservati
                   <select
                     value={formData.seatingArea}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        seatingArea: e.target.value as any,
-                      })
+                      setFormData({ ...formData, seatingArea: e.target.value as ReservationData['seatingArea'] })
                     }
                     className={`w-full px-4 py-3.5 rounded-2xl border font-sans text-sm focus:outline-none focus:border-[#D4AF37] ${
                       theme === 'dark'
@@ -286,57 +253,179 @@ export function ReservationSection({ setCursorMode, preselectedDish }: Reservati
               </div>
 
               {/* STEP 3: CONTACT INFORMATION */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-[#D4AF37]/15">
-                <div className="space-y-2">
-                  <label className="text-xs font-serif tracking-widest text-[#D4AF37] uppercase block font-semibold">
-                    {t.reservation.name}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className={`w-full px-4 py-3.5 rounded-2xl border font-sans text-sm focus:outline-none focus:border-[#D4AF37] ${
+              <div className="pt-4 border-t border-[#D4AF37]/15">
+                {currentUser.isAuthenticated ? (
+                  /* AUTHENTICATED USER: NO NEED TO ENTER EMAIL & DETAILS AGAIN */
+                  <div
+                    className={`p-5 sm:p-6 rounded-2xl border transition-all ${
                       theme === 'dark'
-                        ? 'bg-[#1A1612] border-[#D4AF37]/25 text-[#FAF6EE]'
-                        : 'bg-[#FAF8F5] border-[#D4AF37]/35 text-[#1F1A16]'
+                        ? 'bg-[#171410] border-[#D4AF37]/45 text-[#FAF6EE]'
+                        : 'bg-[#F9F5EE] border-[#D4AF37]/50 text-[#1F1A16]'
                     }`}
-                  />
-                </div>
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#D4AF37]/20 pb-3.5">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/60 flex items-center justify-center">
+                          <Crown className="w-4 h-4 text-[#D4AF37]" />
+                        </div>
+                        <div>
+                          <span className="font-serif font-bold text-xs sm:text-sm tracking-wider text-gold-gradient block">
+                            {isDari ? 'پاترون سلطنتی تأیید شده' : 'AUTHENTICATED ROYAL PATRON'}
+                          </span>
+                          <span className="text-[10px] text-[#A69B89] font-mono block">
+                            {currentUser.memberId || 'RC-VIP-MEMBER'}
+                          </span>
+                        </div>
+                      </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-serif tracking-widest text-[#D4AF37] uppercase block font-semibold">
-                    {t.reservation.email}
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className={`w-full px-4 py-3.5 rounded-2xl border font-sans text-sm focus:outline-none focus:border-[#D4AF37] ${
-                      theme === 'dark'
-                        ? 'bg-[#1A1612] border-[#D4AF37]/25 text-[#FAF6EE]'
-                        : 'bg-[#FAF8F5] border-[#D4AF37]/35 text-[#1F1A16]'
-                    }`}
-                  />
-                </div>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/35 text-emerald-400 text-[11px] font-mono font-bold">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>{isDari ? 'اتصال خودکار به حساب کاربری' : 'Auto-Linked to Logged-in Account'}</span>
+                      </div>
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-serif tracking-widest text-[#D4AF37] uppercase block font-semibold">
-                    {t.reservation.phone}
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className={`w-full px-4 py-3.5 rounded-2xl border font-sans text-sm focus:outline-none focus:border-[#D4AF37] ${
-                      theme === 'dark'
-                        ? 'bg-[#1A1612] border-[#D4AF37]/25 text-[#FAF6EE]'
-                        : 'bg-[#FAF8F5] border-[#D4AF37]/35 text-[#1F1A16]'
-                    }`}
-                  />
-                </div>
+                    {/* Pre-filled Account Card */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3.5 text-left rtl:text-right">
+                      <div>
+                        <span className="text-[10px] font-mono tracking-widest text-[#A69B89] uppercase block font-semibold mb-0.5">
+                          {t.reservation.name}
+                        </span>
+                        <p className="font-serif text-sm font-bold truncate">
+                          {formData.name || currentUser.name}
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-mono tracking-widest text-[#A69B89] uppercase block font-semibold mb-0.5">
+                          {t.reservation.email}
+                        </span>
+                        <p className="font-mono text-xs sm:text-sm text-[#D4AF37] font-semibold break-all truncate">
+                          {formData.email || currentUser.email}
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-mono tracking-widest text-[#A69B89] uppercase block font-semibold mb-0.5">
+                          {t.reservation.phone}
+                        </span>
+                        <p className="font-mono text-xs sm:text-sm truncate">
+                          {formData.phone || currentUser.phone || '+33 6 12 34 56 78'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Optional Toggle to Edit details for this specific booking */}
+                    <div className="flex items-center justify-between text-xs pt-3 mt-3 border-t border-[#D4AF37]/15">
+                      <span className="text-[11px] text-[#8C8173]">
+                        {isDari
+                          ? 'اطلاعات شما به صورت خودکار برای تأیید رزرو بارگذاری شد.'
+                          : 'Your verified VIP credentials are automatically applied. No re-entry required.'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingContact(!isEditingContact)}
+                        className="text-[#D4AF37] hover:underline font-serif text-[11px] flex items-center gap-1 font-semibold"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>{isEditingContact ? (isDari ? 'بستن ویرایش' : 'Close edit') : (isDari ? 'تغییر برای این رزرو' : 'Edit for this booking')}</span>
+                      </button>
+                    </div>
+
+                    {/* Inline editor only if user explicitly requested to edit */}
+                    {isEditingContact && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 mt-3 border-t border-[#D4AF37]/20"
+                      >
+                        <div>
+                          <label className="text-[10px] font-mono uppercase text-[#A69B89] block mb-1">{t.reservation.name}</label>
+                          <input
+                            type="text"
+                            required
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            className="w-full px-3 py-2 rounded-xl border border-[#D4AF37]/30 text-xs bg-black/20 focus:outline-none focus:border-[#D4AF37]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-mono uppercase text-[#A69B89] block mb-1">{t.reservation.email}</label>
+                          <input
+                            type="email"
+                            required
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            className="w-full px-3 py-2 rounded-xl border border-[#D4AF37]/30 text-xs bg-black/20 focus:outline-none focus:border-[#D4AF37]"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-mono uppercase text-[#A69B89] block mb-1">{t.reservation.phone}</label>
+                          <input
+                            type="tel"
+                            required
+                            value={formData.phone}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            className="w-full px-3 py-2 rounded-xl border border-[#D4AF37]/30 text-xs bg-black/20 focus:outline-none focus:border-[#D4AF37]"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                ) : (
+                  /* GUEST INPUTS */
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-serif tracking-widest text-[#D4AF37] uppercase block font-semibold">
+                        {t.reservation.name}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className={`w-full px-4 py-3.5 rounded-2xl border font-sans text-sm focus:outline-none focus:border-[#D4AF37] ${
+                          theme === 'dark'
+                            ? 'bg-[#1A1612] border-[#D4AF37]/25 text-[#FAF6EE]'
+                            : 'bg-[#FAF8F5] border-[#D4AF37]/35 text-[#1F1A16]'
+                        }`}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-serif tracking-widest text-[#D4AF37] uppercase block font-semibold">
+                        {t.reservation.email}
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className={`w-full px-4 py-3.5 rounded-2xl border font-sans text-sm focus:outline-none focus:border-[#D4AF37] ${
+                          theme === 'dark'
+                            ? 'bg-[#1A1612] border-[#D4AF37]/25 text-[#FAF6EE]'
+                            : 'bg-[#FAF8F5] border-[#D4AF37]/35 text-[#1F1A16]'
+                        }`}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-serif tracking-widest text-[#D4AF37] uppercase block font-semibold">
+                        {t.reservation.phone}
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        className={`w-full px-4 py-3.5 rounded-2xl border font-sans text-sm focus:outline-none focus:border-[#D4AF37] ${
+                          theme === 'dark'
+                            ? 'bg-[#1A1612] border-[#D4AF37]/25 text-[#FAF6EE]'
+                            : 'bg-[#FAF8F5] border-[#D4AF37]/35 text-[#1F1A16]'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Dietary Notes */}
@@ -398,7 +487,7 @@ export function ReservationSection({ setCursorMode, preselectedDish }: Reservati
               {/* SUBMIT BUTTON */}
               <button
                 type="submit"
-                className="w-full py-5 rounded-full bg-gradient-to-r from-[#F5E6B3] via-[#D4AF37] to-[#B38728] text-black font-serif font-bold text-xs tracking-[0.25em] shadow-[0_4px_30px_rgba(212,175,55,0.4)] hover:shadow-[0_4px_45px_rgba(212,175,55,0.7)] transition-all flex items-center justify-center gap-3 active:scale-98"
+                className="w-full py-4 sm:py-5 rounded-full bg-gradient-to-r from-[#F5E6B3] via-[#D4AF37] to-[#B38728] text-black font-serif font-bold text-xs tracking-[0.2em] uppercase shadow-[0_4px_30px_rgba(212,175,55,0.4)] hover:shadow-[0_4px_45px_rgba(212,175,55,0.7)] transition-all flex items-center justify-center gap-3 active:scale-98"
               >
                 <Sparkles className="w-4 h-4 text-black" />
                 <span>{t.reservation.submit}</span>

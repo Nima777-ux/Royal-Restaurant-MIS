@@ -22,6 +22,7 @@ import {
   UtensilsCrossed,
   Crown,
   LogOut,
+  Mail,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { SoundPreset } from '../utils/ambientAudio';
@@ -29,11 +30,13 @@ import { SoundPreset } from '../utils/ambientAudio';
 interface ProfileModalProps {
   onReserveWithDish?: (dishName: string) => void;
   onNavigateToReservation?: () => void;
+  onReplayInvitation?: () => void;
 }
 
 export function ProfileModal({
   onReserveWithDish,
   onNavigateToReservation,
+  onReplayInvitation,
 }: ProfileModalProps) {
   const {
     isProfileOpen,
@@ -96,30 +99,30 @@ export function ProfileModal({
         >
           {/* MODAL HEADER */}
           <div
-            className={`p-6 sm:p-8 flex items-center justify-between border-b ${
+            className={`p-4 sm:p-6 md:p-8 flex items-center justify-between border-b gap-2 ${
               theme === 'dark'
                 ? 'bg-gradient-to-r from-[#17130F] to-[#0E0C0A] border-[#D4AF37]/20'
                 : 'bg-gradient-to-r from-[#F4EFE6] to-[#FAF8F5] border-[#D4AF37]/25'
             }`}
           >
-            <div className="flex items-center gap-4">
-              <div className="relative w-12 h-12 rounded-2xl border-2 border-[#D4AF37] flex items-center justify-center bg-gradient-to-br from-[#D4AF37]/20 to-transparent shadow-lg">
-                <Crown className="w-6 h-6 text-[#D4AF37]" />
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+              <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-2xl border-2 border-[#D4AF37] flex items-center justify-center bg-gradient-to-br from-[#D4AF37]/20 to-transparent shadow-lg shrink-0">
+                <Crown className="w-5 h-5 sm:w-6 sm:h-6 text-[#D4AF37]" />
                 <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#D4AF37] flex items-center justify-center text-[8px] text-black font-bold">
                   ★
                 </span>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="font-serif text-lg sm:text-xl font-bold tracking-wide">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="font-serif text-base sm:text-lg md:text-xl font-bold tracking-wide truncate">
                     {t.profileModal.title}
                   </h2>
-                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37] font-mono tracking-wider font-semibold">
+                  <span className="text-[9px] sm:text-[10px] px-2 sm:px-2.5 py-0.5 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37] font-mono tracking-wider font-semibold shrink-0">
                     {t.profileModal.badge}
                   </span>
                 </div>
                 <p
-                  className={`text-xs font-sans mt-0.5 ${
+                  className={`text-[10px] sm:text-xs font-sans mt-0.5 truncate ${
                     theme === 'dark' ? 'text-[#A69B89]' : 'text-[#7A6E5D]'
                   }`}
                 >
@@ -348,20 +351,36 @@ export function ProfileModal({
                     </div>
                   </div>
 
-                  {/* Switch account and Logout buttons */}
+                  {/* Switch account, Replay Invitation and Logout buttons */}
                   <div className="pt-4 border-t border-[#D4AF37]/20 flex flex-wrap items-center justify-between gap-3">
-                    <button
-                      type="button"
-                      id="profile-logout-btn"
-                      onClick={() => {
-                        setIsProfileOpen(false);
-                        logout();
-                      }}
-                      className="px-4 py-2 rounded-xl border border-red-500/40 text-xs font-serif text-red-400 hover:bg-red-500/15 transition-all flex items-center gap-2"
-                    >
-                      <LogOut className="w-3.5 h-3.5 text-red-400" />
-                      <span>{isDari ? 'خروج از حساب سلطنتی' : 'Logout of Account'}</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        id="profile-logout-btn"
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          logout();
+                        }}
+                        className="px-4 py-2 rounded-xl border border-red-500/40 text-xs font-serif text-red-400 hover:bg-red-500/15 transition-all flex items-center gap-2"
+                      >
+                        <LogOut className="w-3.5 h-3.5 text-red-400" />
+                        <span>{isDari ? 'خروج از حساب سلطنتی' : 'Logout of Account'}</span>
+                      </button>
+
+                      {onReplayInvitation && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsProfileOpen(false);
+                            onReplayInvitation();
+                          }}
+                          className="px-4 py-2 rounded-xl border border-[#D4AF37]/40 text-xs font-serif text-[#D4AF37] hover:bg-[#D4AF37]/15 transition-all flex items-center gap-2"
+                        >
+                          <Mail className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          <span>{isDari ? 'مشاهده پیام خیرمقدم سلطنتی' : 'Royal Welcome Message'}</span>
+                        </button>
+                      )}
+                    </div>
 
                     <button
                       type="button"

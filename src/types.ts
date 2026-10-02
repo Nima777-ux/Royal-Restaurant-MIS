@@ -75,6 +75,13 @@ export interface Ingredient {
     aroma: number;
     intensity: number;
   };
+  galleryImages?: string[];
+  soilProfile?: string;
+  soilProfileFa?: string;
+  chefTechnique?: string;
+  chefTechniqueFa?: string;
+  sommelierHarmony?: string;
+  sommelierHarmonyFa?: string;
 }
 
 export interface GalleryItem {

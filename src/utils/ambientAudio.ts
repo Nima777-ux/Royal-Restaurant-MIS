@@ -177,6 +177,10 @@ class PeacefulAcousticSoundscape {
       // ignore
     }
   }
+
+  public stop() {
+    this.pause();
+  }
 }
 
 export const luxuryAudio = new PeacefulAcousticSoundscape();

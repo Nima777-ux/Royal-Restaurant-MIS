@@ -12,6 +12,7 @@ import {
   Sun,
   Moon,
   Sparkles,
+  AlertCircle,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
@@ -30,6 +31,7 @@ export function EmailVerificationGate() {
 
   const isDari = language === 'fa';
   const [isSimulatingGmail, setIsSimulatingGmail] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [resendStatus, setResendStatus] = useState<string | null>(null);
 
   // If email is verified or no pending verification, don't show the gate
@@ -37,22 +39,33 @@ export function EmailVerificationGate() {
     return null;
   }
 
+  const handleOpenGmail = () => {
+    try {
+      window.open('https://mail.google.com', '_blank', 'noopener,noreferrer');
+    } catch {
+      window.location.href = 'https://mail.google.com';
+    }
+  };
+
   const handleSimulateGmailConfirm = () => {
     setIsSimulatingGmail(true);
     setTimeout(() => {
       confirmEmailVerification();
       setIsSimulatingGmail(false);
-    }, 1200);
+    }, 1000);
   };
 
-  const handleResend = () => {
-    resendVerificationEmail();
-    setResendStatus(
-      isDari
-        ? 'لینک جدید تأیید به صندوق ورودی جیمیل شما ارسال شد.'
-        : 'Fresh verification link dispatched to your Gmail inbox.'
-    );
-    setTimeout(() => setResendStatus(null), 3500);
+  const handleResend = async () => {
+    setIsResending(true);
+    try {
+      const res = await resendVerificationEmail();
+      setResendStatus(res.message);
+    } catch (err: any) {
+      setResendStatus(err?.message || 'Error dispatching email.');
+    } finally {
+      setIsResending(false);
+      setTimeout(() => setResendStatus(null), 5000);
+    }
   };
 
   return (
@@ -141,8 +154,8 @@ export function EmailVerificationGate() {
                 }`}
               >
                 {isDari
-                  ? 'یک ایمیل حاوی لینک فعال‌سازی به آدرس زیر ارسال شد. تا زمان تأیید ایمیل در جیمیل، دسترسی به صفحات قصر مسدود است:'
-                  : 'A royal activation link has been sent to your email. The dining hall will remain locked until confirmed from your Gmail inbox:'}
+                  ? 'یک ایمیل حاوی لینک فعال‌سازی از طریق سوپابیس به آدرس زیر ارسال شد. تا زمان تأیید ایمیل در جیمیل، دسترسی به صفحات مسدود است:'
+                  : 'A royal activation link has been sent via Supabase to your email. The dining hall will remain locked until confirmed from your Gmail inbox:'}
               </p>
             </div>
 
@@ -157,55 +170,70 @@ export function EmailVerificationGate() {
               <motion.div
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-xs font-serif text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 rounded-xl p-2.5 flex items-center justify-center gap-2"
+                className="text-xs font-serif text-amber-300 bg-amber-950/60 border border-amber-500/40 rounded-xl p-3 flex items-center justify-center gap-2 text-center"
               >
-                <CheckCircle2 className="w-3.5 h-3.5" />
+                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
                 <span>{resendStatus}</span>
               </motion.div>
             )}
 
             {/* ACTION BUTTONS */}
             <div className="space-y-3 pt-2">
-              {/* 1. Simulator Button: Confirm from Gmail */}
+              {/* 1. Open Gmail Directly */}
               <button
                 type="button"
-                disabled={isSimulatingGmail}
-                onClick={handleSimulateGmailConfirm}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#F5E6B3] via-[#D4AF37] to-[#B38728] text-black font-serif font-bold text-xs tracking-[0.2em] uppercase shadow-[0_4px_30px_rgba(212,175,55,0.45)] hover:shadow-[0_4px_45px_rgba(212,175,55,0.8)] transition-all flex items-center justify-center gap-2.5 active:scale-98 disabled:opacity-70"
+                onClick={handleOpenGmail}
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#F5E6B3] via-[#D4AF37] to-[#B38728] text-black font-serif font-bold text-xs tracking-[0.2em] uppercase shadow-[0_4px_30px_rgba(212,175,55,0.45)] hover:shadow-[0_4px_45px_rgba(212,175,55,0.8)] transition-all flex items-center justify-center gap-2.5 active:scale-98"
               >
-                {isSimulatingGmail ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin text-black" />
-                    <span>{isDari ? 'در حال تأیید لینک جیمیل...' : 'Verifying Gmail Link...'}</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 text-black" />
-                    <span>
-                      {isDari
-                        ? 'تأیید حساب کاربری از طریق جیمیل (شبیه‌ساز)'
-                        : 'Confirm Account from Gmail (Simulate Link)'}
-                    </span>
-                    <ExternalLink className="w-4 h-4 text-black rtl:rotate-180" />
-                  </>
-                )}
+                <Mail className="w-4 h-4 text-black" />
+                <span>{isDari ? 'باز کردن صندوق ورودی جیمیل (Gmail)' : 'Open Gmail Inbox'}</span>
+                <ExternalLink className="w-4 h-4 text-black rtl:rotate-180" />
               </button>
 
-              {/* 2. Resend Link button */}
+              {/* 2. Resend Link via Supabase */}
               <button
                 type="button"
+                disabled={isResending}
                 onClick={handleResend}
-                className={`w-full py-3 rounded-2xl border text-xs font-serif font-semibold transition-all flex items-center justify-center gap-2 ${
+                className={`w-full py-3 rounded-2xl border text-xs font-serif font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-60 ${
                   theme === 'dark'
                     ? 'border-[#D4AF37]/35 bg-[#171410] text-[#D4AF37] hover:bg-[#D4AF37]/15'
                     : 'border-[#D4AF37]/45 bg-white text-[#B8860B] hover:bg-[#D4AF37]/15 shadow-sm'
                 }`}
               >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>{isDari ? 'ارسال مجدد ایمیل به جیمیل' : 'Resend Verification Email'}</span>
+                <RefreshCw className={`w-3.5 h-3.5 ${isResending ? 'animate-spin' : ''}`} />
+                <span>{isDari ? 'ارسال مجدد ایمیل فعال‌سازی به جیمیل' : 'Resend Verification Email to Gmail'}</span>
               </button>
 
-              {/* 3. Cancel / Change email / Back to sign in */}
+              {/* 3. Simulator / Bypass Link button */}
+              <button
+                type="button"
+                disabled={isSimulatingGmail}
+                onClick={handleSimulateGmailConfirm}
+                className={`w-full py-2.5 rounded-2xl border border-dashed text-[11px] font-sans transition-all flex items-center justify-center gap-2 ${
+                  theme === 'dark'
+                    ? 'border-[#D4AF37]/30 text-[#C5BBAF] hover:text-[#FAF6EE] hover:bg-white/5'
+                    : 'border-[#D4AF37]/40 text-[#695D4D] hover:text-black hover:bg-black/5'
+                }`}
+              >
+                {isSimulatingGmail ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#D4AF37]" />
+                    <span>{isDari ? 'در حال بازگشایی پورتال...' : 'Unlocking Restaurant...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
+                    <span>
+                      {isDari
+                        ? 'تأیید فوری و ورود به سایت (بای‌پس شبیه‌ساز)'
+                        : 'Confirm & Enter Restaurant (Simulator Bypass)'}
+                    </span>
+                  </>
+                )}
+              </button>
+
+              {/* 4. Cancel / Change email / Back to sign in */}
               <button
                 type="button"
                 onClick={cancelPendingVerification}

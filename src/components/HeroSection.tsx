@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, Sparkles, Award, Star, Eye } from 'lucide-react';
+import { ArrowRight, Sparkles, Award, Star, Eye, User } from 'lucide-react';
 import { CursorMode, Dish } from '../types';
 import { SIGNATURE_DISHES } from '../data/restaurantData';
 import { useApp } from '../context/AppContext';
@@ -20,7 +20,7 @@ export function HeroSection({
 }: HeroSectionProps) {
   const [activeDishIndex, setActiveDishIndex] = useState(0);
   const currentDish = SIGNATURE_DISHES[activeDishIndex] || SIGNATURE_DISHES[0];
-  const { t, formatPrice, language, theme } = useApp();
+  const { t, formatPrice, language, theme, setIsContactModalOpen } = useApp();
 
   const currentDishName = language === 'fa' && currentDish.nameFa ? currentDish.nameFa : currentDish.name;
   const currentDishSubtitle =

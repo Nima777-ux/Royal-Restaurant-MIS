@@ -15,6 +15,13 @@ import {
   Mountain,
   Wind,
   Flame,
+  X,
+  Eye,
+  Maximize2,
+  ZoomIn,
+  ZoomOut,
+  Wine,
+  CheckCircle2,
 } from 'lucide-react';
 import { INGREDIENTS_SHOWCASE, SIGNATURE_DISHES } from '../data/restaurantData';
 import { Ingredient, CursorMode, Dish } from '../types';
@@ -27,9 +34,18 @@ interface IngredientsShowcaseProps {
 
 export function IngredientsShowcase({ setCursorMode, onSelectDish }: IngredientsShowcaseProps) {
   const [activeIngredient, setActiveIngredient] = useState<Ingredient>(INGREDIENTS_SHOWCASE[0]);
+  const [inspectedIngredient, setInspectedIngredient] = useState<Ingredient | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isImageZoomed, setIsImageZoomed] = useState(false);
   const [viewMode, setViewMode] = useState<'atlas' | 'dossier' | 'map'>('atlas');
   const { t, language, theme } = useApp();
   const isDari = language === 'fa';
+
+  const openInspectModal = (item: Ingredient) => {
+    setInspectedIngredient(item);
+    setSelectedImageIndex(0);
+    setIsImageZoomed(false);
+  };
 
   const activeName = isDari && activeIngredient.nameFa ? activeIngredient.nameFa : activeIngredient.name;
   const activeOrigin = isDari && activeIngredient.originFa ? activeIngredient.originFa : activeIngredient.origin;
@@ -192,7 +208,8 @@ export function IngredientsShowcase({ setCursorMode, onSelectDish }: Ingredients
                   key={item.id}
                   whileHover={{ y: -6 }}
                   transition={{ duration: 0.3 }}
-                  className={`group relative rounded-3xl border overflow-hidden flex flex-col justify-between shadow-xl transition-all duration-500 ${
+                  onClick={() => openInspectModal(item)}
+                  className={`group relative rounded-3xl border overflow-hidden flex flex-col justify-between shadow-xl transition-all duration-500 cursor-pointer ${
                     isSelected
                       ? 'border-[#D4AF37] ring-2 ring-[#D4AF37]/40'
                       : theme === 'dark'
@@ -200,14 +217,31 @@ export function IngredientsShowcase({ setCursorMode, onSelectDish }: Ingredients
                       : 'border-[#D4AF37]/35 bg-white hover:border-[#D4AF37]/70'
                   }`}
                 >
-                  {/* Card Image */}
-                  <div className="relative aspect-[16/11] overflow-hidden">
+                  {/* Card Image (Clickable for full detailed inspection) */}
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openInspectModal(item);
+                    }}
+                    onMouseEnter={() => setCursorMode('hover')}
+                    onMouseLeave={() => setCursorMode('default')}
+                    className="relative aspect-[16/11] overflow-hidden cursor-pointer group/img"
+                    title={isDari ? 'کلیک کنید برای مشاهده جزئیات بیشتر' : 'Click to inspect full details'}
+                  >
                     <img
                       src={item.image}
                       alt={itemName}
-                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
+                      className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-700 ease-out"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent group-hover/img:opacity-75 transition-opacity" />
+
+                    {/* Hover Inspect badge */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity bg-black/40 backdrop-blur-xs">
+                      <span className="px-3.5 py-1.5 rounded-full bg-[#D4AF37] text-black font-serif font-bold text-xs flex items-center gap-1.5 shadow-lg transform -translate-y-1 group-hover/img:translate-y-0 transition-transform">
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>{isDari ? 'مشاهده جزئیات کامل' : 'Inspect Details'}</span>
+                      </span>
+                    </div>
 
                     {/* Rarity Ribbon */}
                     <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
@@ -240,8 +274,9 @@ export function IngredientsShowcase({ setCursorMode, onSelectDish }: Ingredients
                   {/* Card Body */}
                   <div className="p-6 flex flex-col flex-1 justify-between space-y-4">
                     <div>
-                      <h3 className="font-serif text-lg sm:text-xl font-bold tracking-tight text-gold-gradient mb-2">
-                        {itemName}
+                      <h3 className="font-serif text-lg sm:text-xl font-bold tracking-tight text-gold-gradient mb-2 group-hover:text-[#FFF5DC] transition-colors flex items-center justify-between">
+                        <span>{itemName}</span>
+                        <Maximize2 className="w-3.5 h-3.5 text-[#D4AF37] opacity-60 group-hover:opacity-100 transition-opacity" />
                       </h3>
                       <p
                         className={`text-xs font-sans leading-relaxed line-clamp-3 ${
@@ -277,21 +312,25 @@ export function IngredientsShowcase({ setCursorMode, onSelectDish }: Ingredients
                     {/* Card Actions */}
                     <div className="pt-2 flex items-center justify-between gap-3 border-t border-[#D4AF37]/15">
                       <button
-                        onClick={() => {
-                          setActiveIngredient(item);
-                          setViewMode('dossier');
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openInspectModal(item);
                         }}
                         onMouseEnter={() => setCursorMode('hover')}
                         onMouseLeave={() => setCursorMode('default')}
                         className="text-xs font-serif font-bold text-[#D4AF37] hover:underline flex items-center gap-1.5"
                       >
-                        <span>{isDari ? 'مشاهده دوسیه کامل' : 'Full Dossier'}</span>
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>{isDari ? 'مشاهده جزئیات بیشتر' : 'More Details'}</span>
                         <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
                       </button>
 
                       {pairedDish && onSelectDish && (
                         <button
-                          onClick={() => onSelectDish(pairedDish)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectDish(pairedDish);
+                          }}
                           className="px-3.5 py-1.5 rounded-full bg-[#D4AF37]/15 border border-[#D4AF37]/40 text-[#D4AF37] text-[11px] font-serif font-semibold hover:bg-[#D4AF37] hover:text-black transition-colors flex items-center gap-1"
                         >
                           <Utensils className="w-3 h-3" />
@@ -359,14 +398,28 @@ export function IngredientsShowcase({ setCursorMode, onSelectDish }: Ingredients
                     : 'bg-white border-[#D4AF37]/45 shadow-[0_25px_80px_rgba(0,0,0,0.08)]'
                 }`}
               >
-                {/* Hero Image Side */}
-                <div className="lg:col-span-5 relative aspect-square lg:aspect-auto overflow-hidden min-h-[380px] lg:min-h-[540px]">
+                {/* Hero Image Side (Clickable to inspect deep details) */}
+                <div
+                  onClick={() => openInspectModal(activeIngredient)}
+                  onMouseEnter={() => setCursorMode('hover')}
+                  onMouseLeave={() => setCursorMode('default')}
+                  className="lg:col-span-5 relative aspect-square lg:aspect-auto overflow-hidden min-h-[380px] lg:min-h-[540px] cursor-pointer group/hero"
+                  title={isDari ? 'کلیک کنید برای مشاهده جزئیات بیشتر' : 'Click to inspect full details'}
+                >
                   <img
                     src={activeIngredient.image}
                     alt={activeName}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover/hero:scale-105 transition-transform duration-700 ease-out"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent group-hover/hero:opacity-75 transition-opacity" />
+
+                  {/* Hover Inspect badge */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-opacity bg-black/40 backdrop-blur-xs">
+                    <span className="px-4 py-2 rounded-full bg-[#D4AF37] text-black font-serif font-bold text-xs flex items-center gap-1.5 shadow-xl transform -translate-y-1 group-hover/hero:translate-y-0 transition-transform">
+                      <Eye className="w-4 h-4" />
+                      <span>{isDari ? 'مشاهده جزئیات کامل ماده اولیه' : 'Inspect Detailed Terroir'}</span>
+                    </span>
+                  </div>
 
                   {/* Rarity Badge */}
                   <div className="absolute top-5 left-5 z-10">
@@ -617,7 +670,7 @@ export function IngredientsShowcase({ setCursorMode, onSelectDish }: Ingredients
                     key={item.id}
                     onClick={() => {
                       setActiveIngredient(item);
-                      setViewMode('dossier');
+                      openInspectModal(item);
                     }}
                     onMouseEnter={() => setCursorMode('hover')}
                     onMouseLeave={() => setCursorMode('default')}
@@ -655,6 +708,355 @@ export function IngredientsShowcase({ setCursorMode, onSelectDish }: Ingredients
             </div>
           </motion.div>
         )}
+
+        {/* ----------------- INGREDIENT DETAIL INSPECTION MODAL ----------------- */}
+        <AnimatePresence>
+          {inspectedIngredient && (
+            <div
+              id="ingredient-inspect-modal"
+              className="fixed inset-0 z-[160] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-2xl overflow-y-auto"
+              onClick={() => setInspectedIngredient(null)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92, y: 25 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: 25 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                onClick={(e) => e.stopPropagation()}
+                className={`relative w-full max-w-4xl rounded-3xl overflow-hidden border shadow-[0_30px_90px_rgba(0,0,0,0.95)] my-auto max-h-[90vh] flex flex-col ${
+                  theme === 'dark'
+                    ? 'bg-[#0E0C0A] border-[#D4AF37]/45 text-[#FAF6EE]'
+                    : 'bg-[#FAF8F5] border-[#D4AF37]/50 text-[#1F1A16]'
+                }`}
+              >
+                {/* Modal Header */}
+                <div
+                  className={`p-4 sm:p-6 border-b flex items-center justify-between gap-3 ${
+                    theme === 'dark'
+                      ? 'bg-gradient-to-r from-[#17130F] to-[#0E0C0A] border-[#D4AF37]/25'
+                      : 'bg-gradient-to-r from-[#F4EFE6] to-[#FAF8F5] border-[#D4AF37]/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="w-8 h-8 rounded-full border border-white/30 flex items-center justify-center shrink-0 shadow"
+                      style={{ backgroundColor: inspectedIngredient.color }}
+                    >
+                      <Sparkles className="w-4 h-4 text-black" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-serif text-base sm:text-xl font-bold text-gold-gradient truncate">
+                          {isDari && inspectedIngredient.nameFa ? inspectedIngredient.nameFa : inspectedIngredient.name}
+                        </h3>
+                        <span className="text-[9px] sm:text-[10px] px-2.5 py-0.5 rounded-full bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37] font-mono tracking-widest uppercase font-bold shrink-0">
+                          {isDari && inspectedIngredient.rarityFa ? inspectedIngredient.rarityFa : inspectedIngredient.rarity}
+                        </span>
+                      </div>
+                      <p className="text-[10px] sm:text-xs text-[#A69B89] font-mono flex items-center gap-1.5 mt-0.5">
+                        <MapPin className="w-3 h-3 text-[#D4AF37]" />
+                        <span>{isDari && inspectedIngredient.originFa ? inspectedIngredient.originFa : inspectedIngredient.origin}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setInspectedIngredient(null)}
+                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border flex items-center justify-center transition-colors shrink-0 ${
+                      theme === 'dark'
+                        ? 'border-[#D4AF37]/35 bg-[#1A1612] text-[#FAF6EE] hover:text-[#D4AF37] hover:border-[#D4AF37]'
+                        : 'border-[#D4AF37]/40 bg-white text-[#1F1A16] hover:text-[#B8860B] hover:border-[#B8860B]'
+                    }`}
+                    aria-label="Close"
+                  >
+                    <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
+                </div>
+
+                {/* Modal Scrollable Body */}
+                <div className="overflow-y-auto flex-1 p-5 sm:p-8 space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+                    {/* Left Column: Macro Image Gallery, Zoom, and Provenance Facts */}
+                    <div className="lg:col-span-6 space-y-4">
+                      {/* Main Featured Photo with HD Zoom */}
+                      <div className="relative aspect-[16/11] rounded-2xl overflow-hidden border border-[#D4AF37]/50 shadow-2xl group bg-black">
+                        <img
+                          src={
+                            inspectedIngredient.galleryImages?.[selectedImageIndex] ||
+                            inspectedIngredient.image
+                          }
+                          alt={isDari && inspectedIngredient.nameFa ? inspectedIngredient.nameFa : inspectedIngredient.name}
+                          className={`w-full h-full object-cover transition-transform duration-500 ${
+                            isImageZoomed ? 'scale-150 cursor-zoom-out' : 'group-hover:scale-105 cursor-zoom-in'
+                          }`}
+                          onClick={() => setIsImageZoomed(!isImageZoomed)}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent pointer-events-none" />
+
+                        {/* HD Zoom toggle badge */}
+                        <button
+                          type="button"
+                          onClick={() => setIsImageZoomed(!isImageZoomed)}
+                          className="absolute top-3.5 right-3.5 px-3 py-1.5 rounded-full bg-black/75 backdrop-blur-md border border-[#D4AF37]/60 text-[#FFEAA7] text-[10px] font-mono uppercase font-bold flex items-center gap-1.5 shadow-lg hover:bg-black transition-all z-10"
+                        >
+                          {isImageZoomed ? <ZoomOut className="w-3.5 h-3.5 text-[#D4AF37]" /> : <ZoomIn className="w-3.5 h-3.5 text-[#D4AF37]" />}
+                          <span>{isImageZoomed ? (isDari ? 'کوچک‌نمایی' : 'Reset Zoom') : (isDari ? 'بزرگ‌نمایی HD' : 'Zoom HD')}</span>
+                        </button>
+
+                        {/* Rarity & Origin Overlay */}
+                        <div className="absolute top-3.5 left-3.5 z-10">
+                          <span className="px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-[#D4AF37]/50 text-[#D4AF37] text-[10px] font-mono tracking-widest uppercase font-bold flex items-center gap-1.5 shadow-md">
+                            <Award className="w-3 h-3 text-[#D4AF37]" />
+                            {isDari && inspectedIngredient.rarityFa ? inspectedIngredient.rarityFa : inspectedIngredient.rarity}
+                          </span>
+                        </div>
+
+                        <div className="absolute bottom-3.5 left-3.5 right-3.5 text-white flex items-end justify-between z-10">
+                          <div>
+                            <div className="flex items-center gap-1.5 text-xs font-mono text-[#D4AF37]">
+                              <MapPin className="w-3.5 h-3.5 text-[#D4AF37]" />
+                              <span className="font-bold">
+                                {isDari && inspectedIngredient.originFa ? inspectedIngredient.originFa : inspectedIngredient.origin}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-white/70 font-mono mt-0.5 block">
+                              {isDari ? 'زاویه و تصویر' : 'Perspective view'} {selectedImageIndex + 1} / {inspectedIngredient.galleryImages?.length || 1}
+                            </span>
+                          </div>
+
+                          <div className="text-[10px] font-mono text-[#FFEAA7] px-2 py-0.5 rounded bg-black/60 border border-[#D4AF37]/30">
+                            {isImageZoomed ? (isDari ? 'حالت زوم فعال' : 'Zoom 150%') : (isDari ? 'برای زوم کلیک کنید' : 'Click to zoom')}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Interactive Gallery Thumbnail Selector */}
+                      {inspectedIngredient.galleryImages && inspectedIngredient.galleryImages.length > 1 && (
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] font-mono tracking-wider text-[#A69B89] uppercase block font-semibold">
+                            {isDari ? 'گالری نماهای میکروسکوپی و خاستگاه:' : 'Terroir Micro & Harvest Perspectives:'}
+                          </span>
+                          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                            {inspectedIngredient.galleryImages.map((gImg, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedImageIndex(idx);
+                                  setIsImageZoomed(false);
+                                }}
+                                className={`relative w-20 h-14 rounded-xl overflow-hidden border-2 shrink-0 transition-all ${
+                                  selectedImageIndex === idx
+                                    ? 'border-[#D4AF37] ring-2 ring-[#D4AF37]/60 scale-105 shadow-md'
+                                    : 'border-white/20 opacity-60 hover:opacity-100 hover:border-[#D4AF37]/50'
+                                }`}
+                              >
+                                <img src={gImg} alt="perspective thumbnail" className="w-full h-full object-cover" />
+                                {selectedImageIndex === idx && (
+                                  <div className="absolute inset-0 bg-[#D4AF37]/20 flex items-center justify-center">
+                                    <Eye className="w-3.5 h-3.5 text-white drop-shadow" />
+                                  </div>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Provenance Key Facts Grid */}
+                      <div className="grid grid-cols-2 gap-2.5 text-xs">
+                        <div className="p-3 rounded-xl border border-[#D4AF37]/25 bg-black/20">
+                          <div className="flex items-center gap-1.5 text-[#A69B89] font-mono text-[10px] uppercase">
+                            <Mountain className="w-3 h-3 text-[#D4AF37]" />
+                            <span>{isDari ? 'ارتفاع از سطح دریا' : 'Altitude'}</span>
+                          </div>
+                          <p className="font-serif font-bold text-xs mt-1 text-[#D4AF37]">
+                            {isDari && inspectedIngredient.elevationFa ? inspectedIngredient.elevationFa : inspectedIngredient.elevation || 'Sacred Terroir'}
+                          </p>
+                        </div>
+
+                        <div className="p-3 rounded-xl border border-[#D4AF37]/25 bg-black/20">
+                          <div className="flex items-center gap-1.5 text-[#A69B89] font-mono text-[10px] uppercase">
+                            <Calendar className="w-3 h-3 text-[#D4AF37]" />
+                            <span>{isDari ? 'فصل برداشت' : 'Harvest Season'}</span>
+                          </div>
+                          <p className="font-serif font-bold text-xs mt-1 text-[#D4AF37]">
+                            {isDari && inspectedIngredient.harvestSeasonFa ? inspectedIngredient.harvestSeasonFa : inspectedIngredient.harvestSeason || 'Micro-seasonal'}
+                          </p>
+                        </div>
+
+                        <div className="p-3 rounded-xl border border-[#D4AF37]/25 bg-black/20">
+                          <div className="flex items-center gap-1.5 text-[#A69B89] font-mono text-[10px] uppercase">
+                            <Wind className="w-3 h-3 text-[#D4AF37]" />
+                            <span>{isDari ? 'اقلیم جغرافیایی' : 'Microclimate'}</span>
+                          </div>
+                          <p className="font-serif font-bold text-xs mt-1 text-[#D4AF37]">
+                            {isDari && inspectedIngredient.climateFa ? inspectedIngredient.climateFa : inspectedIngredient.climate || 'Rare Microclimate'}
+                          </p>
+                        </div>
+
+                        <div className="p-3 rounded-xl border border-[#D4AF37]/25 bg-black/20">
+                          <div className="flex items-center gap-1.5 text-[#A69B89] font-mono text-[10px] uppercase">
+                            <Flame className="w-3 h-3 text-[#D4AF37]" />
+                            <span>{isDari ? 'روش برداشت' : 'Harvest Method'}</span>
+                          </div>
+                          <p className="font-serif font-bold text-xs mt-1 text-[#D4AF37]">
+                            {isDari && inspectedIngredient.harvestMethodFa ? inspectedIngredient.harvestMethodFa : inspectedIngredient.harvestMethod || 'Hand-harvested'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Geological & Soil Profile */}
+                      {inspectedIngredient.soilProfile && (
+                        <div className="p-3.5 rounded-2xl border border-[#D4AF37]/30 bg-black/25">
+                          <div className="flex items-center gap-2 text-[#D4AF37] text-xs font-mono font-bold uppercase mb-1">
+                            <Globe2 className="w-3.5 h-3.5 text-[#D4AF37]" />
+                            <span>{isDari ? 'ترکیب خاک و ژئولوژی خاستگاه' : 'Geological Soil & Mineral Profile'}</span>
+                          </div>
+                          <p className="text-xs font-sans leading-relaxed text-[#FAF6EE]">
+                            {isDari && inspectedIngredient.soilProfileFa ? inspectedIngredient.soilProfileFa : inspectedIngredient.soilProfile}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right Column: Deep Culinary Dossier, Chef Protocol, Sommelier, & Sensory Matrix */}
+                    <div className="lg:col-span-6 space-y-4">
+                      <div>
+                        <span className="text-[10px] font-mono tracking-widest text-[#D4AF37] uppercase block font-bold mb-1">
+                          TERROIR SENSORY DOSSIER
+                        </span>
+                        <h4 className="font-serif text-xl sm:text-2xl font-bold text-gold-gradient">
+                          {isDari && inspectedIngredient.nameFa ? inspectedIngredient.nameFa : inspectedIngredient.name}
+                        </h4>
+                        <p className="text-xs font-sans leading-relaxed text-[#C5BBAF] mt-2">
+                          {isDari && inspectedIngredient.descriptionFa ? inspectedIngredient.descriptionFa : inspectedIngredient.description}
+                        </p>
+                      </div>
+
+                      {/* 3-Star Michelin Chef Technique */}
+                      {inspectedIngredient.chefTechnique && (
+                        <div className="p-3.5 rounded-2xl border border-[#D4AF37]/35 bg-gradient-to-r from-[#D4AF37]/15 to-transparent">
+                          <div className="flex items-center gap-2 text-[#FFEAA7] text-xs font-mono font-bold uppercase mb-1">
+                            <Award className="w-3.5 h-3.5 text-[#D4AF37]" />
+                            <span>{isDari ? 'تکنیک طبخ سرآشپز ۳ ستاره میشلن' : '3-Star Michelin Culinary Protocol'}</span>
+                          </div>
+                          <p className="text-xs font-serif italic leading-relaxed text-[#FAF6EE]">
+                            {isDari && inspectedIngredient.chefTechniqueFa ? inspectedIngredient.chefTechniqueFa : inspectedIngredient.chefTechnique}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Sommelier Grand Cru Terroir Harmony */}
+                      {inspectedIngredient.sommelierHarmony && (
+                        <div className="p-3.5 rounded-2xl border border-[#D4AF37]/30 bg-black/25">
+                          <div className="flex items-center gap-2 text-[#D4AF37] text-xs font-mono font-bold uppercase mb-1">
+                            <Wine className="w-3.5 h-3.5 text-[#D4AF37]" />
+                            <span>{isDari ? 'تطابق با شراب گرند کرو' : 'Sommelier Grand Cru Terroir Match'}</span>
+                          </div>
+                          <p className="text-xs font-sans text-[#FFEAA7] font-semibold">
+                            {isDari && inspectedIngredient.sommelierHarmonyFa ? inspectedIngredient.sommelierHarmonyFa : inspectedIngredient.sommelierHarmony}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Sensory Scores Progress Bars */}
+                      {inspectedIngredient.sensoryScores && (
+                        <div className="p-4 rounded-2xl border border-[#D4AF37]/30 bg-black/25 space-y-2.5">
+                          <h5 className="text-[10px] font-mono tracking-widest text-[#D4AF37] uppercase font-bold">
+                            {isDari ? 'ماتریس حسی و ارزیابی طعم' : 'Flavor & Sensory Radar Matrix'}
+                          </h5>
+
+                          <div className="space-y-2">
+                            <div>
+                              <div className="flex justify-between text-[11px] font-mono text-[#8C8173] mb-1">
+                                <span>{t.ingredients.radar?.earthiness || 'Earthiness'}</span>
+                                <span className="text-[#D4AF37] font-bold">{inspectedIngredient.sensoryScores.earthiness}%</span>
+                              </div>
+                              <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                <div className="bg-gradient-to-r from-[#D4AF37] to-[#FFEAA7] h-full rounded-full" style={{ width: `${inspectedIngredient.sensoryScores.earthiness}%` }} />
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className="flex justify-between text-[11px] font-mono text-[#8C8173] mb-1">
+                                <span>{t.ingredients.radar?.umami || 'Umami Concentration'}</span>
+                                <span className="text-[#D4AF37] font-bold">{inspectedIngredient.sensoryScores.umami}%</span>
+                              </div>
+                              <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                <div className="bg-gradient-to-r from-[#D4AF37] to-[#FFEAA7] h-full rounded-full" style={{ width: `${inspectedIngredient.sensoryScores.umami}%` }} />
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className="flex justify-between text-[11px] font-mono text-[#8C8173] mb-1">
+                                <span>{t.ingredients.radar?.aroma || 'Aroma Volatility'}</span>
+                                <span className="text-[#D4AF37] font-bold">{inspectedIngredient.sensoryScores.aroma}%</span>
+                              </div>
+                              <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                <div className="bg-gradient-to-r from-[#D4AF37] to-[#FFEAA7] h-full rounded-full" style={{ width: `${inspectedIngredient.sensoryScores.aroma}%` }} />
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className="flex justify-between text-[11px] font-mono text-[#8C8173] mb-1">
+                                <span>{t.ingredients.radar?.intensity || 'Haute Intensity'}</span>
+                                <span className="text-[#D4AF37] font-bold">{inspectedIngredient.sensoryScores.intensity}%</span>
+                              </div>
+                              <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                <div className="bg-gradient-to-r from-[#D4AF37] to-[#FFEAA7] h-full rounded-full" style={{ width: `${inspectedIngredient.sensoryScores.intensity}%` }} />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Sommelier Tasting Note */}
+                      <div className="p-3.5 rounded-xl border border-[#D4AF37]/25 bg-gradient-to-r from-[#D4AF37]/10 to-transparent">
+                        <p className="font-editorial text-sm italic text-[#E5D7BE]">
+                          "{isDari && inspectedIngredient.tastingNoteFa ? inspectedIngredient.tastingNoteFa : inspectedIngredient.tastingNote}"
+                        </p>
+                      </div>
+
+                      {/* Paired Dish Link */}
+                      {(() => {
+                        const paired = SIGNATURE_DISHES.find(
+                          (d) => d.name.toLowerCase() === (inspectedIngredient.pairedDishName || '').toLowerCase()
+                        );
+                        if (!paired) return null;
+
+                        return (
+                          <div className="p-3.5 rounded-2xl border border-[#D4AF37]/35 bg-[#171410] flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                              <span className="text-[9px] font-mono uppercase text-[#A69B89] block">
+                                {isDari ? 'غذای شاهانه مرتبط با این ماده:' : 'Featured in Royal Signature Dish:'}
+                              </span>
+                              <p className="font-serif font-bold text-xs sm:text-sm text-[#D4AF37] truncate mt-0.5">
+                                {isDari && paired.nameFa ? paired.nameFa : paired.name}
+                              </p>
+                            </div>
+                            {onSelectDish && (
+                              <button
+                                onClick={() => {
+                                  setInspectedIngredient(null);
+                                  onSelectDish(paired);
+                                }}
+                                className="px-3.5 py-1.5 rounded-full bg-[#D4AF37] text-black font-serif font-bold text-xs flex items-center gap-1 hover:bg-[#FFEAA7] transition-all shrink-0 active:scale-95"
+                              >
+                                <Utensils className="w-3.5 h-3.5" />
+                                <span>{isDari ? 'مشاهده غذا' : 'Inspect Dish'}</span>
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );

@@ -1,4 +1,4 @@
-import { MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, User, Sparkles } from 'lucide-react';
 import { CursorMode } from '../types';
 import { useApp } from '../context/AppContext';
 
@@ -8,7 +8,8 @@ interface FooterProps {
 }
 
 export function Footer({ setCursorMode, onNavigate }: FooterProps) {
-  const { t, language, theme } = useApp();
+  const { t, language, theme, setIsContactModalOpen } = useApp();
+  const isDari = language === 'fa';
 
   return (
     <footer
@@ -88,6 +89,21 @@ export function Footer({ setCursorMode, onNavigate }: FooterProps) {
             <div className="flex items-center gap-2.5 text-xs">
               <Mail className="w-4 h-4 text-[#D4AF37] shrink-0" />
               <span>concierge@nima-restaurant.com</span>
+            </div>
+
+            {/* Direct Contact Founder Button in Footer */}
+            <div className="pt-2">
+              <button
+                id="footer-contact-owner-btn"
+                onClick={() => setIsContactModalOpen(true)}
+                onMouseEnter={() => setCursorMode('hover')}
+                onMouseLeave={() => setCursorMode('default')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#D4AF37]/50 bg-[#D4AF37]/15 hover:bg-[#D4AF37]/30 text-[#D4AF37] hover:text-[#FFF5DC] text-xs font-mono font-bold transition-all shadow-sm group"
+              >
+                <User className="w-3.5 h-3.5 text-[#D4AF37] group-hover:scale-110 transition-transform" />
+                <span>{isDari ? 'تماس با مالک • نیما' : 'Contact Founder • Lord Nima'}</span>
+                <Sparkles className="w-3 h-3 text-[#FFEAA7] animate-pulse" />
+              </button>
             </div>
           </div>
 

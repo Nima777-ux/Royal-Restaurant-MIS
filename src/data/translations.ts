@@ -24,6 +24,13 @@ export const TRANSLATIONS = {
       darkMode: 'Dark Mode',
       signIn: 'SIGN IN',
       logout: 'Logout',
+      details: 'Details',
+      vipMenu: 'VIP Menu & Details',
+      myProfile: 'My VIP Profile',
+      favorites: 'Saved Favorites',
+      reservations: 'My Reservations',
+      settings: 'Ambience & Settings',
+      replayIntro: 'Replay Welcome Video',
     },
     authModal: {
       badge: 'ROYAL VIP ACCESS',
@@ -57,6 +64,20 @@ export const TRANSLATIONS = {
       signUpNow: 'Apply for Membership',
       signInNow: 'Sign in to Account',
       successWelcome: 'Welcome to The Royal Crown,',
+      forgotPasswordLink: 'Forgot Password?',
+      forgotPasswordTitle: 'RESET ROYAL PASSWORD',
+      forgotPasswordSubtitle:
+        'Enter your email address and we will dispatch a password recovery link directly to your Gmail inbox.',
+      sendResetLinkBtn: 'SEND PASSWORD RESET LINK TO GMAIL',
+      backToSignIn: 'Back to Sign In',
+      resetEmailSent:
+        'Password reset link dispatched by Supabase to your Gmail! Please check your inbox.',
+      resetNewPasswordTitle: 'SET NEW PASSWORD',
+      resetNewPasswordSubtitle:
+        'Enter a new secure password for your Royal VIP account to regain full access.',
+      newPasswordLabel: 'New Secure Password',
+      newPasswordPlaceholder: 'Enter new password (min. 6 characters)',
+      updatePasswordBtn: 'UPDATE PASSWORD & UNLOCK',
       verification: {
         badge: 'GMAIL CONFIRMATION REQUIRED',
         title: 'VERIFY YOUR EMAIL TO ENTER',
@@ -347,6 +368,13 @@ export const TRANSLATIONS = {
       darkMode: 'حالت تاریک',
       signIn: 'ورود اعضا',
       logout: 'خروج از حساب',
+      details: 'جزئیات',
+      vipMenu: 'منوی جزئیات و خدمات VIP',
+      myProfile: 'پروفایل سلطنتی من',
+      favorites: 'غذاهای پسندیده',
+      reservations: 'رزروهای میز من',
+      settings: 'تنظیمات و موسیقی',
+      replayIntro: 'پخش مجدد ویدیوی افتتاحیه',
     },
     authModal: {
       badge: 'درگاه ورود اعضای سلطنتی',
@@ -380,6 +408,20 @@ export const TRANSLATIONS = {
       signUpNow: 'درخواست عضویت فوری',
       signInNow: 'وارد حساب خود شوید',
       successWelcome: 'به قصر رویال کراون خوش آمدید،',
+      forgotPasswordLink: 'فراموشی رمز عبور؟',
+      forgotPasswordTitle: 'بازیابی رمز عبور سلطنتی',
+      forgotPasswordSubtitle:
+        'آدرس ایمیل خود را وارد فرمایید تا لینک بازیابی رمز مستقیم به صندوق جیمیل شما فرستاده شود.',
+      sendResetLinkBtn: 'ارسال لینک بازیابی رمز به جیمیل',
+      backToSignIn: 'بازگشت به صفحه ورود',
+      resetEmailSent:
+        'لینک بازیابی رمز عبور توسط سوپابیس به جیمیل شما فرستاده شد! لطفاً صندوق ورودی خود را بررسی کنید.',
+      resetNewPasswordTitle: 'تعیین رمز عبور جدید',
+      resetNewPasswordSubtitle:
+        'رمز عبور جدید و امن خود را وارد فرمایید تا دسترسی کامل شما دوباره فعال گردد.',
+      newPasswordLabel: 'رمز عبور جدید و امن',
+      newPasswordPlaceholder: 'رمز عبور جدید (حداقل ۶ حرف)',
+      updatePasswordBtn: 'ذخیره رمز جدید و بازگشایی پورتال',
       verification: {
         badge: 'تأیید ایمیل الزامی است',
         title: 'ایمیل خود را در جیمیل تأیید نمایید',

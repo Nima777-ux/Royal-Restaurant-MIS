@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { AnimatePresence } from 'motion/react';
 import { Simple3DBackground } from './components/Simple3DBackground';
 import { LuxuryBackground } from './components/LuxuryBackground';
 import { Navbar } from './components/Navbar';
@@ -13,61 +14,55 @@ import { ReservationSection } from './components/ReservationSection';
 import { DishModal } from './components/DishModal';
 import { ProfileModal } from './components/ProfileModal';
 import { AuthModal } from './components/AuthModal';
+import { OwnerContactModal } from './components/OwnerContactModal';
 import { Footer } from './components/Footer';
+import { RoyalEnvelopeIntro } from './components/RoyalEnvelopeIntro';
 import { Dish, CursorMode } from './types';
 import { AppProvider, useApp } from './context/AppContext';
 
 function MainAppContent() {
   const [cursorMode, setCursorMode] = useState<CursorMode>('default');
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [activeSection, setActiveSection] = useState('hero');
   const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
   const [reservedDishName, setReservedDishName] = useState<string | undefined>(undefined);
+  const [showEnvelopeIntro, setShowEnvelopeIntro] = useState<boolean>(true);
 
-  const { theme, isRtl, currentUser, isEmailVerified } = useApp();
+  const { theme, isRtl, currentUser, isEmailVerified, isContactModalOpen, setIsContactModalOpen } = useApp();
 
   // User requirement: "and until we didn't confirm the email from gmail the page shouldn't load"
   const isAccessLocked = !currentUser.isAuthenticated || !isEmailVerified;
 
-  // Mouse coordinate tracker (-1 to 1 for Three.js WebGL & 3D Parallax)
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth) * 2 - 1;
-      const y = -(e.clientY / window.innerHeight) * 2 + 1;
-      setMousePos({ x, y });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  // Scroll Progress and Active Section Tracker
+  // Ultra-Lightweight Scroll Tracker (Throttled with requestAnimationFrame to prevent re-render lag)
   useEffect(() => {
     if (isAccessLocked) return;
 
-    const handleScroll = () => {
-      const sections = [
-        'hero',
-        'philosophy',
-        'signature',
-        'menu',
-        'ingredients',
-        'chef',
-        'gallery',
-        'reservation',
-      ];
-      const scrollPos = window.scrollY + 200;
+    let ticking = false;
+    const sections = [
+      'hero',
+      'philosophy',
+      'signature',
+      'menu',
+      'ingredients',
+      'chef',
+      'gallery',
+      'reservation',
+    ];
 
-      for (const section of sections) {
-        const el = document.getElementById(section);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPos >= top && scrollPos < top + height) {
-            setActiveSection(section);
-            break;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollPos = window.scrollY + 250;
+          for (let i = sections.length - 1; i >= 0; i--) {
+            const section = sections[i];
+            const el = document.getElementById(section);
+            if (el && scrollPos >= el.offsetTop) {
+              setActiveSection((prev) => (prev !== section ? section : prev));
+              break;
+            }
           }
-        }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
@@ -89,17 +84,24 @@ function MainAppContent() {
 
   return (
     <div
-      className={`relative min-h-screen overflow-x-hidden film-grain transition-colors duration-500 ${
+      className={`relative min-h-screen overflow-x-hidden film-grain transition-colors duration-300 ${
         theme === 'dark'
           ? 'bg-[#080706] text-[#FAF6EE] selection:bg-[#D4AF37]/30 selection:text-[#FFF5DC]'
           : 'bg-[#FAF7F2] text-[#1F1A16] selection:bg-[#D4AF37]/40 selection:text-[#3D2C04]'
       }`}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
-      {/* 3D LUXURY RESTAURANT AMBIENCE BACKGROUND */}
+      {/* 1. ROYAL ENVELOPE INVITATION OPENING (Shown on start of website, opens upon click) */}
+      <AnimatePresence>
+        {showEnvelopeIntro && (
+          <RoyalEnvelopeIntro onOpenComplete={() => setShowEnvelopeIntro(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* 2. 3D LUXURY RESTAURANT AMBIENCE BACKGROUND */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <LuxuryBackground mousePos={mousePos} />
-        <Simple3DBackground mousePos={mousePos} theme={theme} />
+        <LuxuryBackground />
+        <Simple3DBackground theme={theme} />
       </div>
 
       {isAccessLocked ? (
@@ -110,11 +112,12 @@ function MainAppContent() {
       ) : (
         /* UNLOCKED RESTAURANT EXPERIENCE */
         <>
-          {/* FLOATING GLASS NAVIGATION */}
+          {/* FLOATING GLASS NAVIGATION WITH PROMINENT TABS */}
           <Navbar
             setCursorMode={setCursorMode}
             onNavigate={scrollToSection}
             activeSection={activeSection}
+            onReplayInvitation={() => setShowEnvelopeIntro(true)}
           />
 
           {/* MAIN SECTIONS */}
@@ -142,29 +145,26 @@ function MainAppContent() {
               onSelectDish={(dish) => setSelectedDish(dish)}
             />
 
-            {/* 5. INGREDIENTS CONSTELLATION ("THE IMPERIAL TERROIR & PROVENANCE ATLAS") */}
-            <IngredientsShowcase
-              setCursorMode={setCursorMode}
-              onSelectDish={(dish) => setSelectedDish(dish)}
-            />
+            {/* 5. CULINARY INGREDIENTS & TERROIR */}
+            <IngredientsShowcase setCursorMode={setCursorMode} />
 
-            {/* 6. CHEF SECTION ("MASTER CHEF FARID SHAH") */}
+            {/* 6. CHEF & CULINARY BRIGADE */}
             <ChefSection setCursorMode={setCursorMode} />
 
-            {/* 7. RESTAURANT ATMOSPHERE (ASYMMETRIC MASONRY GALLERY) */}
+            {/* 7. ATMOSPHERE & ARCHITECTURE GALLERY */}
             <AtmosphereGallery setCursorMode={setCursorMode} />
 
-            {/* 8. RESERVATION EXPERIENCE ("YOUR TABLE IS WAITING") */}
+            {/* 8. ROYAL TABLE RESERVATION SYSTEM */}
             <ReservationSection
               setCursorMode={setCursorMode}
               preselectedDish={reservedDishName}
             />
           </main>
 
-          {/* 9. CINEMATIC FOOTER */}
+          {/* FOOTER */}
           <Footer setCursorMode={setCursorMode} onNavigate={scrollToSection} />
 
-          {/* 360 3D DISH INSPECTION MODAL */}
+          {/* DISH 3D INSPECTION MODAL */}
           <DishModal
             dish={selectedDish}
             onClose={() => setSelectedDish(null)}
@@ -176,6 +176,13 @@ function MainAppContent() {
           <ProfileModal
             onReserveWithDish={handleReserveWithDish}
             onNavigateToReservation={() => scrollToSection('reservation')}
+            onReplayInvitation={() => setShowEnvelopeIntro(true)}
+          />
+
+          {/* OWNER / FOUNDER CONTACT MODAL */}
+          <OwnerContactModal
+            isOpen={isContactModalOpen}
+            onClose={() => setIsContactModalOpen(false)}
           />
 
           {/* ROYAL VIP AUTHENTICATION MODAL */}
