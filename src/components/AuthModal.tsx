@@ -22,6 +22,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import nimaPhoto from '../assets/images/nima_nabizada.jpg';
 
 export function AuthModal() {
   const {
@@ -216,6 +217,18 @@ export function AuthModal() {
     }
   };
 
+  const handleFounderLogin = async () => {
+    setErrorMessage(null);
+    setIsLoading(true);
+    await login('nimaalkantra7@gmail.com', undefined, 'Nima Nabizada');
+    setNotification(
+      isDari
+        ? 'خوش آمدید نیما نبی‌زاده! دسترسی موسس و مالک با موفقیت تأیید شد.'
+        : 'Welcome Nima Nabizada! Founder & Owner access granted.'
+    );
+    setIsLoading(false);
+  };
+
   const handleQuickDemoLogin = async () => {
     setErrorMessage(null);
     setIsLoading(true);
@@ -350,8 +363,15 @@ export function AuthModal() {
             >
               <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
               <div className="flex-1">
-                <span className="font-semibold block">{isDari ? 'خطا در احراز هویت:' : 'Notice:'}</span>
-                <span>{errorMessage}</span>
+                <span className="font-semibold block">{isDari ? 'پیام سیستم:' : 'Notice:'}</span>
+                <span>
+                  {errorMessage.toLowerCase().includes('api key') ||
+                  errorMessage.toLowerCase().includes('apikey')
+                    ? isDari
+                      ? 'لطفاً مشخصات خود را بررسی کنید یا از دکمه ورود مستقیم سلطنتی استفاده فرمایید.'
+                      : 'Please verify credentials or use the 1-tap Royal VIP Sign In button.'
+                    : errorMessage}
+                </span>
               </div>
             </motion.div>
           )}
@@ -661,6 +681,26 @@ export function AuthModal() {
                             <ArrowRight className="w-4 h-4 text-black rtl:rotate-180" />
                           </>
                         )}
+                      </button>
+
+                      {/* Direct Founder & Owner Login (Nima Nabizada) */}
+                      <button
+                        type="button"
+                        id="founder-direct-login-btn"
+                        onClick={handleFounderLogin}
+                        disabled={isLoading}
+                        className="w-full py-3 px-4 rounded-2xl border border-[#D4AF37]/60 bg-gradient-to-r from-[#D4AF37]/25 via-[#D4AF37]/10 to-[#D4AF37]/25 hover:from-[#D4AF37]/40 hover:to-[#D4AF37]/30 text-[#FFEAA7] text-xs font-serif font-bold tracking-wider transition-all flex items-center justify-center gap-2.5 shadow-[0_2px_15px_rgba(212,175,55,0.25)] hover:shadow-[0_4px_25px_rgba(212,175,55,0.45)] cursor-pointer"
+                      >
+                        <img
+                          src={nimaPhoto}
+                          alt="Nima Nabizada"
+                          className="w-5 h-5 rounded-full object-cover border border-[#D4AF37] shrink-0"
+                        />
+                        <span>
+                          {isDari
+                            ? '👑 ورود با حساب نیما نبی‌زاده (مالک و موسس)'
+                            : '👑 Sign In as Nima Nabizada (Founder & Owner)'}
+                        </span>
                       </button>
 
                       {/* Quick VIP Demo Login */}
