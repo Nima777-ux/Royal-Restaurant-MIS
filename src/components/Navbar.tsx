@@ -534,7 +534,7 @@ export function Navbar({
                         <div>
                           <div className="font-serif font-semibold">{t.nav.replayIntro}</div>
                           <div className="text-[10px] text-[#8A8072]">
-                            {isDari ? 'انیمیشن پاکت و نشان اختصاصی R' : 'Opening envelope animation'}
+                            {isDari ? 'انیمیشن درگاه قصر و نشان اختصاصی R' : 'Royal portal & R seal animation'}
                           </div>
                         </div>
                       </div>

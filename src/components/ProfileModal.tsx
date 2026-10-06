@@ -376,7 +376,7 @@ export function ProfileModal({
                           }}
                           className="px-4 py-2 rounded-xl border border-[#D4AF37]/40 text-xs font-serif text-[#D4AF37] hover:bg-[#D4AF37]/15 transition-all flex items-center gap-2"
                         >
-                          <Mail className="w-3.5 h-3.5 text-[#D4AF37]" />
+                          <Crown className="w-3.5 h-3.5 text-[#D4AF37]" />
                           <span>{isDari ? 'مشاهده پیام خیرمقدم سلطنتی' : 'Royal Welcome Message'}</span>
                         </button>
                       )}
