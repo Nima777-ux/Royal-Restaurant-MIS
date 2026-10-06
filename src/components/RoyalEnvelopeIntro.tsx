@@ -231,7 +231,7 @@ export function RoyalEnvelopeIntro({ onOpenComplete }: RoyalEnvelopeIntroProps) 
 
               <div>
                 <span className="text-[10px] sm:text-xs font-mono tracking-[0.3em] text-[#D4AF37] uppercase block font-bold">
-                  ROYAL WELCOME MESSAGE • پیام خیرمقدم شاهانه
+                  ROYAL WELCOME MESSAGE
                 </span>
                 <h2 className="font-serif text-2xl sm:text-4xl md:text-5xl font-bold tracking-wider text-gold-gradient mt-2">
                   THE ROYAL CROWN
@@ -247,15 +247,12 @@ export function RoyalEnvelopeIntro({ onOpenComplete }: RoyalEnvelopeIntroProps) 
                 <p className="font-serif italic text-sm sm:text-lg text-[#F0E6D5] leading-relaxed">
                   «Welcome to our gastronomic palace. Partake in an imperial culinary journey orchestrated for distinguished patrons.»
                 </p>
-                <p className="font-serif text-xs sm:text-sm text-[#D4AF37]/90 leading-relaxed font-medium">
-                  خوش آمدید به قصر سلطنتی رویال کراون؛ ضیافتی بی‌بدیل در اوج هنر آشپزی سه ستاره میشلن.
-                </p>
               </div>
 
               <div className="pt-2">
                 <span className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-[#D4AF37]/60 bg-[#D4AF37]/20 text-[#FFEAA7] text-xs sm:text-sm font-mono tracking-widest font-bold shadow-[0_0_20px_rgba(212,175,55,0.35)]">
                   <Sparkles className="w-4 h-4 text-[#D4AF37]" />
-                  SANCTUARY UNLOCKED • ورود به کاخ شاهی
+                  SANCTUARY UNLOCKED
                 </span>
               </div>
             </div>
@@ -449,7 +446,7 @@ export function RoyalEnvelopeIntro({ onOpenComplete }: RoyalEnvelopeIntroProps) 
         <div className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full border border-[#D4AF37]/70 bg-black/75 backdrop-blur-md shadow-[0_4px_35px_rgba(212,175,55,0.4)] text-[#F5E6B3] hover:border-[#D4AF37] hover:bg-black/90 transition-all group">
           <Sparkles className="w-4 h-4 text-[#D4AF37] animate-pulse group-hover:scale-110 transition-transform" />
           <span className="font-serif text-xs sm:text-sm tracking-[0.2em] uppercase font-bold text-gold-gradient">
-            {hasInteracted ? 'OPENING ROYAL WELCOME MESSAGE...' : 'CLICK TO ENTER THE ROYAL CROWN • کلیک برای ورود'}
+            {hasInteracted ? 'OPENING ROYAL WELCOME MESSAGE...' : 'CLICK TO ENTER THE ROYAL CROWN'}
           </span>
         </div>
         <p className="text-[11px] font-sans text-[#A69B89] tracking-wider mt-2.5 uppercase font-medium">

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { CursorMode } from '../types';
 import { useApp } from '../context/AppContext';
+import nimaPhoto from '../assets/images/nima_nabizada.jpg';
 
 interface NavbarProps {
   setCursorMode: (mode: CursorMode) => void;
@@ -189,12 +190,16 @@ export function Navbar({
               }}
               onMouseEnter={() => setCursorMode('hover')}
               onMouseLeave={() => setCursorMode('default')}
-              title={isDari ? 'اطلاعات تماس با مدیر و مالک قصر (نیما)' : 'Contact Creator & Founder (Lord Nima)'}
-              className="mt-0.5 inline-flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 rounded-full border border-[#D4AF37]/60 bg-gradient-to-r from-[#D4AF37]/25 via-[#D4AF37]/10 to-transparent hover:border-[#FFEAA7] hover:from-[#D4AF37]/40 text-[#FFEAA7] text-[8px] sm:text-[9.5px] font-mono font-bold tracking-wide shadow-[0_0_10px_rgba(212,175,55,0.25)] hover:shadow-[0_0_16px_rgba(212,175,55,0.5)] transition-all group/owner cursor-pointer"
+              title={isDari ? 'درباره من و ارتباط مستقیم • نیما نبی‌زاده (+93797355027)' : 'About Me & Direct Contact • Nima Nabizada (+93797355027)'}
+              className="mt-0.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-[#D4AF37]/60 bg-gradient-to-r from-[#D4AF37]/25 via-[#D4AF37]/10 to-transparent hover:border-[#FFEAA7] hover:from-[#D4AF37]/40 text-[#FFEAA7] text-[8px] sm:text-[9.5px] font-mono font-bold tracking-wide shadow-[0_0_10px_rgba(212,175,55,0.25)] hover:shadow-[0_0_16px_rgba(212,175,55,0.5)] transition-all group/owner cursor-pointer"
             >
-              <User className="w-2.5 h-2.5 text-[#D4AF37] group-hover/owner:scale-110 transition-transform shrink-0" />
+              <img
+                src={nimaPhoto}
+                alt="Nima Nabizada"
+                className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full object-cover border border-[#D4AF37] shadow-xs shrink-0 group-hover/owner:scale-110 transition-transform"
+              />
               <span className="whitespace-nowrap">
-                {isDari ? 'اطلاعات تماس با من • نیما' : 'Contact About Me • Nima'}
+                {isDari ? 'درباره من • نیما نبی‌زاده' : 'About Me • Nima Nabizada'}
               </span>
               <Sparkles className="w-2 h-2 text-[#FFEAA7] animate-pulse shrink-0" />
             </button>
@@ -536,7 +541,7 @@ export function Navbar({
                     </button>
                   )}
 
-                  {/* Option 6: Direct Contact Lord Nima (Owner) */}
+                  {/* Option 6: Direct Contact Nima Nabizada (Founder & Creator) */}
                   <button
                     onClick={() => {
                       setIsContactModalOpen(true);
@@ -545,15 +550,19 @@ export function Navbar({
                     className="w-full flex items-center justify-between p-2 rounded-xl text-xs hover:bg-[#D4AF37]/15 transition-all group text-left rtl:text-right"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-[#D4AF37]/15 flex items-center justify-center text-[#D4AF37] group-hover:bg-[#D4AF37] group-hover:text-black transition-colors">
-                        <User className="w-3.5 h-3.5" />
+                      <div className="w-7 h-7 rounded-lg overflow-hidden border border-[#D4AF37]/50 shrink-0">
+                        <img
+                          src={nimaPhoto}
+                          alt="Nima Nabizada"
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <div>
                         <div className="font-serif font-semibold text-[#D4AF37] group-hover:text-gold-gradient">
-                          {isDari ? 'تماس با مالک • نیما' : 'Contact Founder • Lord Nima'}
+                          {isDari ? 'تماس با موسس • نیما نبی‌زاده' : 'Contact Founder • Nima Nabizada'}
                         </div>
-                        <div className="text-[10px] text-[#8A8072]">
-                          {isDari ? 'ارسال پیام مستقیم به سازنده' : 'Direct line & VIP email'}
+                        <div className="text-[10px] text-[#8A8072] font-mono">
+                          (+93797355027)
                         </div>
                       </div>
                     </div>
@@ -754,8 +763,12 @@ export function Navbar({
               }}
               className="mt-2 w-full py-2 px-3 rounded-xl text-xs font-serif font-bold text-[#D4AF37] bg-[#D4AF37]/15 hover:bg-[#D4AF37]/25 border border-[#D4AF37]/35 flex items-center justify-center gap-2"
             >
-              <User className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>{isDari ? 'تماس با مالک قصر • نیما' : 'Contact Founder • Lord Nima'}</span>
+              <img
+                src={nimaPhoto}
+                alt="Nima Nabizada"
+                className="w-4 h-4 rounded-full object-cover border border-[#D4AF37]"
+              />
+              <span>{isDari ? 'تماس با موسس • نیما نبی‌زاده' : 'Contact Founder • Nima Nabizada'}</span>
               <Sparkles className="w-3 h-3 text-[#FFEAA7]" />
             </button>
 

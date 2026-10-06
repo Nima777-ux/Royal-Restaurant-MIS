@@ -101,7 +101,7 @@ export function Footer({ setCursorMode, onNavigate }: FooterProps) {
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#D4AF37]/50 bg-[#D4AF37]/15 hover:bg-[#D4AF37]/30 text-[#D4AF37] hover:text-[#FFF5DC] text-xs font-mono font-bold transition-all shadow-sm group"
               >
                 <User className="w-3.5 h-3.5 text-[#D4AF37] group-hover:scale-110 transition-transform" />
-                <span>{isDari ? 'تماس با مالک • نیما' : 'Contact Founder • Lord Nima'}</span>
+                <span>{isDari ? 'تماس با موسس • نیما نبی‌زاده' : 'Contact Founder • Nima Nabizada'}</span>
                 <Sparkles className="w-3 h-3 text-[#FFEAA7] animate-pulse" />
               </button>
             </div>

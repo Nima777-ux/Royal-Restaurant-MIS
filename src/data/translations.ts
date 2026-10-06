@@ -44,9 +44,9 @@ export const TRANSLATIONS = {
       passwordLabel: 'Password',
       passwordPlaceholder: 'Enter your password',
       fullNameLabel: 'Royal Guest Name',
-      fullNamePlaceholder: 'e.g. Lord Nima Al-Kantara',
+      fullNamePlaceholder: 'e.g. Nima Nabizada',
       phoneLabel: 'Direct Phone / Mobile',
-      phonePlaceholder: '+33 6 12 34 56 78',
+      phonePlaceholder: '(+93797355027)',
       tierLabel: 'Select Royal Patron Tier',
       tiers: {
         patron: 'Imperial Crown Patron (Full VIP Concierge & First Seating)',
@@ -388,9 +388,9 @@ export const TRANSLATIONS = {
       passwordLabel: 'رمز عبور',
       passwordPlaceholder: 'رمز عبور خود را وارد کنید',
       fullNameLabel: 'نام و تخلص',
-      fullNamePlaceholder: 'مثال: لرد نیما الکانترا',
+      fullNamePlaceholder: 'مثال: نیما نبی‌زاده',
       phoneLabel: 'شماره تماس مستقیم',
-      phonePlaceholder: 'مثال: +33 6 12 34 56 78 یا 0799123456',
+      phonePlaceholder: 'مثال: (+93797355027)',
       tierLabel: 'انتخاب سطح عضویت سلطنتی',
       tiers: {
         patron: 'پاترون تاج سلطنتی (دسترسی کامل VIP و اولویت اول میزها)',

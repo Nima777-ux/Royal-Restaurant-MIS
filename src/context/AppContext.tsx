@@ -67,9 +67,9 @@ export function toPersianDigits(n: number | string): string {
 }
 
 const defaultRoyalUser: UserProfile = {
-  name: 'Lord Nima Al-Kantara',
+  name: 'Nima Nabizada',
   email: 'nima@epicurean.vip',
-  phone: '+33 6 12 34 56 78',
+  phone: '(+93797355027)',
   memberId: 'RC-8829-VIP',
   tier: 'Imperial Crown Patron',
   tierFa: 'پاترون تاج سلطنتی (Imperial Crown Patron)',
@@ -418,7 +418,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const updated: UserProfile = {
         ...currentUser,
         email: cleanEmail || currentUser.email,
-        name: name || currentUser.name || 'Lord Nima Al-Kantara',
+        name: name || currentUser.name || 'Nima Nabizada',
         isAuthenticated: true,
         emailVerified: true,
       };
@@ -519,7 +519,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const pendingUser: UserProfile = {
         name: cleanName,
         email: cleanEmail,
-        phone: '+33 6 12 34 56 78',
+        phone: '(+93797355027)',
         memberId: `RC-${Math.floor(1000 + Math.random() * 9000)}-VIP`,
         tier: 'Imperial Crown Patron',
         tierFa: 'پاترون تاج سلطنتی (Imperial Crown Patron)',

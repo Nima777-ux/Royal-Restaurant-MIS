@@ -219,7 +219,7 @@ export function AuthModal() {
   const handleQuickDemoLogin = async () => {
     setErrorMessage(null);
     setIsLoading(true);
-    await login('lord.nima@epicurean.vip', undefined, 'Lord Nima Al-Kantara');
+    await login('nima.nabizada@epicurean.vip', undefined, 'Nima Nabizada');
     setNotification(
       isDari
         ? 'ورود سریع با اکانت پاترون سلطنتی تأیید شد!'

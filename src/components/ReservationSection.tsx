@@ -69,9 +69,9 @@ export function ReservationSection({ setCursorMode, preselectedDish }: Reservati
     time: '20:00',
     guests: 2,
     seatingArea: "Chef's Counter",
-    name: currentUser?.name || 'Lord Nima Al-Kantara',
+    name: currentUser?.name || 'Nima Nabizada',
     email: currentUser?.email || 'nimaalkantra7@gmail.com',
-    phone: currentUser?.phone || '+33 6 12 34 56 78',
+    phone: currentUser?.phone || '(+93797355027)',
     dietaryNotes: preselectedDish ? `Specially requesting: ${preselectedDish}` : '',
   }));
 
@@ -309,7 +309,7 @@ export function ReservationSection({ setCursorMode, preselectedDish }: Reservati
                           {t.reservation.phone}
                         </span>
                         <p className="font-mono text-xs sm:text-sm truncate">
-                          {formData.phone || currentUser.phone || '+33 6 12 34 56 78'}
+                          {formData.phone || currentUser.phone || '(+93797355027)'}
                         </p>
                       </div>
                     </div>
